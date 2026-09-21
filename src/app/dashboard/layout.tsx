@@ -34,7 +34,9 @@ export default function DashboardLayout({
   if (checking) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <div className="text-[var(--muted-foreground)]">Loading...</div>
+        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+          Loading...
+        </div>
       </div>
     );
   }
@@ -46,7 +48,7 @@ export default function DashboardLayout({
   return (
     <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-1 p-8 overflow-auto">{children}</main>
+      <main className="flex-1 p-8 md:p-12 overflow-auto">{children}</main>
     </div>
   );
 }

@@ -9,7 +9,6 @@ interface Viva {
   sessionCode: string;
   totalQuestions: number;
   difficulty: string;
-  adaptiveMode: boolean;
   createdAt: string;
   experiment: { title: string };
   sessions: Array<{
@@ -44,80 +43,88 @@ export default function MyVivasPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--muted-foreground)]">Loading vivas...</div>
+        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+          Loading...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-12">
+      <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-[var(--foreground)]">
+          <p className="font-mono text-xs uppercase tracking-widest mb-4">
+            Examinations
+          </p>
+          <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
             My Vivas
           </h1>
-          <p className="text-[var(--muted-foreground)] mt-1">
-            Manage your viva examinations
-          </p>
         </div>
-        <Link href="/dashboard/create" className="btn-primary">
+        <Link href="/dashboard/create" className="btn-primary text-xs">
           + New Viva
         </Link>
       </div>
 
+      <div className="rule-ultra" />
+
       {vivas.length === 0 ? (
-        <div className="card text-center py-12">
-          <p className="text-[var(--muted-foreground)]">
+        <div className="py-24 text-center">
+          <p className="font-body text-[#525252] mb-4">
             No vivas created yet.
           </p>
           <Link
             href="/dashboard/create"
-            className="text-[var(--primary)] text-sm mt-2 inline-block hover:underline"
+            className="font-mono text-xs uppercase tracking-widest underline underline-offset-4 hover:no-underline"
           >
             Create your first viva
           </Link>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-0">
           {vivas.map((viva) => {
             const completedSessions = viva.sessions.filter(
               (s) => s.status === "COMPLETED"
             ).length;
             return (
-              <div key={viva.id} className="card">
+              <div key={viva.id} className="border border-black p-6 mb-0 last:mb-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <Link
                       href={`/dashboard/vivas/${viva.id}`}
-                      className="text-lg font-semibold text-[var(--foreground)] hover:text-[var(--primary)]"
+                      className="font-display text-xl font-bold hover:underline underline-offset-4 transition-all duration-100"
                     >
                       {viva.title}
                     </Link>
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1">
+                    <p className="font-body text-sm text-[#525252] mt-1">
                       {viva.experiment.title}
                     </p>
-                    <div className="flex items-center gap-4 mt-3 text-xs text-[var(--muted-foreground)]">
-                      <span>{viva.totalQuestions} questions</span>
-                      <span className="capitalize">{viva.difficulty}</span>
-                      <span>
+                    <div className="flex items-center gap-6 mt-3">
+                      <span className="font-mono text-[10px] uppercase tracking-widest">
+                        {viva.totalQuestions} questions
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-widest">
+                        {viva.difficulty}
+                      </span>
+                      <span className="font-mono text-[10px] uppercase tracking-widest">
                         {completedSessions}/{viva.sessions.length} completed
                       </span>
-                      <span className="font-mono bg-[var(--secondary)] px-2 py-0.5 rounded">
+                      <span className="font-mono text-[10px] uppercase tracking-widest bg-black text-white px-2 py-0.5">
                         {viva.sessionCode}
                       </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <Link
                       href="/viva"
                       target="_blank"
-                      className="btn-ghost text-xs"
+                      className="btn-ghost text-[10px]"
                     >
-                      Student View
+                      Student View →
                     </Link>
                     <button
                       onClick={() => handleDelete(viva.id)}
-                      className="btn-ghost text-xs text-red-600 hover:text-red-700"
+                      className="btn-ghost text-[10px] text-[#525252] hover:text-black"
                     >
                       Delete
                     </button>

@@ -48,36 +48,39 @@ export default function VivaJoinPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white px-6">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[var(--primary)]">
+        <div className="text-center mb-12">
+          <h1 className="font-display text-4xl font-bold tracking-tight">
             AI Viva Examiner
           </h1>
-          <p className="text-[var(--muted-foreground)] mt-2">
-            Enter your session details to begin the examination
+          <div className="rule-thick w-12 mx-auto my-6" />
+          <p className="font-body text-[#525252]">
+            Enter your session details to begin
           </p>
         </div>
 
-        <div className="card">
-          <form onSubmit={handleJoin} className="space-y-6">
-            <div className="space-y-2">
+        <div className="border border-black p-8">
+          <form onSubmit={handleJoin} className="space-y-8">
+            <div>
               <label className="label">Session Code</label>
               <input
                 type="text"
-                className="input text-center text-lg tracking-widest uppercase font-mono"
+                className="input-full text-center text-2xl tracking-[0.3em] font-mono uppercase"
                 placeholder="ABCD1234"
                 value={sessionCode}
-                onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
+                onChange={(e) =>
+                  setSessionCode(e.target.value.toUpperCase())
+                }
                 maxLength={8}
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <label className="label">Your Name</label>
               <input
                 type="text"
-                className="input"
+                className="input-full"
                 placeholder="Enter your full name"
                 value={studentName}
                 onChange={(e) => setStudentName(e.target.value)}
@@ -85,8 +88,10 @@ export default function VivaJoinPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-                {error}
+              <div className="border-2 border-black p-4 bg-black text-white">
+                <p className="font-mono text-xs uppercase tracking-wider">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -95,12 +100,12 @@ export default function VivaJoinPage() {
               className="btn-primary w-full"
               disabled={loading}
             >
-              {loading ? "Joining..." : "Start Viva"}
+              {loading ? "Joining..." : "Start Viva →"}
             </button>
           </form>
         </div>
 
-        <p className="text-center text-xs text-[var(--muted-foreground)] mt-6">
+        <p className="text-center font-mono text-[10px] uppercase tracking-widest text-[#525252] mt-8">
           Ask your teacher for the session code
         </p>
       </div>

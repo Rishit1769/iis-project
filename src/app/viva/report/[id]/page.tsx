@@ -4,329 +4,141 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
 interface ReportData {
-  session: {
-    id: string;
-    studentName: string;
-    totalScore: number;
-    maxScore: number;
-    startedAt: string;
-    completedAt: string;
-  };
-  viva: {
-    title: string;
-    experimentTitle: string;
-    passingScore: number;
-  };
-  report: {
-    overallScore: number;
-    maxScore: number;
-    percentage: number;
-    status: string;
-    categoryPerformance: Record<string, number>;
-    strongAreas: string[];
-    weakAreas: string[];
-    recommendedRevision: string[];
-    summary: string;
-  };
-  evaluations: Array<{
-    questionNumber: number;
-    question: string;
-    studentAnswer: string;
-    score: number;
-    maxScore: number;
-    correctness: string;
-    topic: string;
-    strengths: string[];
-    weaknesses: string[];
-    missingConcepts: string[];
-    feedback: string;
-  }>;
+  session: { id: string; studentName: string; totalScore: number; maxScore: number; startedAt: string; completedAt: string };
+  viva: { title: string; experimentTitle: string; passingScore: number };
+  report: { overallScore: number; maxScore: number; percentage: number; status: string; categoryPerformance: Record<string, number>; strongAreas: string[]; weakAreas: string[]; recommendedRevision: string[]; summary: string };
+  evaluations: { id: string; question: string; answer: string; score: number; maxScore: number; feedback: string; category: string }[];
 }
 
-export default function ReportPage() {
+export default function VivaReportPage() {
   const params = useParams();
-  const sessionId = params.id as string;
-  const [report, setReport] = useState<ReportData | null>(null);
+  const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [expandedQuestion, setExpandedQuestion] = useState<number | null>(null);
+  const [expandedQ, setExpandedQ] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch(`/api/sessions/${sessionId}/report`)
-      .then((r) => {
-        if (!r.ok) throw new Error("Report not available");
-        return r.json();
-      })
-      .then((data) => setReport(data))
-      .catch((err) => setError(err.message))
+    fetch(`/api/sessions/${params.id}/report`)
+      .then((r) => { if (!r.ok) throw new Error("Failed to load report"); return r.json(); })
+      .then(setData)
+      .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [sessionId]);
+  }, [params.id]);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-pulse-slow text-lg text-[var(--muted-foreground)]">
-            Preparing assessment...
-          </div>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
+      <div className="h-8 w-64 bg-black/5 animate-pulse-slow mb-8" />
+      <div className="h-32 w-full bg-black/5 animate-pulse-slow mb-4" />
+      <div className="h-48 w-full bg-black/5 animate-pulse-slow" />
+    </div>
+  );
 
-  if (error || !report) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="card max-w-md text-center space-y-4">
-          <p className="text-[var(--muted-foreground)]">
-            {error || "Report not available."}
-          </p>
-        </div>
+  if (error || !data) return (
+    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
+      <div className="border border-black p-8 text-center">
+        <p className="font-mono text-sm tracking-widest uppercase">Error</p>
+        <p className="font-body mt-2">{error || "Report not found"}</p>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const { session, viva, report, evaluations } = data;
+  const pct = report.percentage;
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <div className="max-w-3xl mx-auto p-4 py-8 space-y-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-[var(--primary)]">
-            AI Viva Examiner
-          </h1>
-          <p className="text-[var(--muted-foreground)] mt-1">
-            Assessment Report
-          </p>
-        </div>
+    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
+      <header className="mb-12">
+        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-2">{viva.title}</p>
+        <h1 className="font-display text-4xl font-bold mb-1">{viva.experimentTitle}</h1>
+        <p className="font-body text-black/60">{session.studentName}</p>
+        <div className="rule-thick mt-6" />
+      </header>
 
-        <div className="card text-center">
-          <h2 className="text-lg font-semibold mb-4">
-            {report.viva.experimentTitle}
-          </h2>
-          <div className="text-5xl font-bold text-[var(--primary)] mb-2">
-            {report.report.percentage}%
-          </div>
-          <div className="text-lg text-[var(--muted-foreground)] mb-4">
-            {report.report.overallScore} / {report.report.maxScore} points
-          </div>
-          <div
-            className={`inline-flex items-center px-4 py-2 rounded-full text-lg font-semibold ${
-              report.report.status === "PASSED"
-                ? "bg-green-50 text-green-700 border border-green-200"
-                : "bg-red-50 text-red-700 border border-red-200"
-            }`}
-          >
-            {report.report.status}
-          </div>
-          <p className="text-sm text-[var(--muted-foreground)] mt-4">
-            Passing score: {report.viva.passingScore}%
-          </p>
+      <section className="mb-12">
+        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Final Score</p>
+        <div className="flex items-baseline gap-2 mb-2">
+          <span className="font-display text-7xl font-bold">{report.overallScore}</span>
+          <span className="font-mono text-2xl text-black/40">/ {report.maxScore}</span>
         </div>
+        <div className="rule-thin my-4" />
+        <div className="flex items-center gap-4">
+          <span className="font-mono text-sm tracking-widest uppercase">{report.status}</span>
+          <span className="font-mono text-sm text-black/40">{pct.toFixed(1)}%</span>
+          <span className="font-mono text-xs text-black/30">Pass: {viva.passingScore}</span>
+        </div>
+      </section>
 
-        {Object.keys(report.report.categoryPerformance).length > 0 && (
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-4">Performance Breakdown</h3>
-            <div className="space-y-3">
-              {Object.entries(report.report.categoryPerformance).map(
-                ([category, pct]) => (
-                  <div key={category}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium">{category}</span>
-                      <span>{Math.round(pct as number)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full ${
-                          (pct as number) >= 70
-                            ? "bg-green-500"
-                            : (pct as number) >= 50
-                            ? "bg-amber-500"
-                            : "bg-red-500"
-                        }`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              )}
+      <section className="mb-12">
+        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Category Performance</p>
+        {Object.entries(report.categoryPerformance).map(([cat, score]) => (
+          <div key={cat} className="mb-3">
+            <div className="flex justify-between mb-1">
+              <span className="font-body text-sm">{cat}</span>
+              <span className="font-mono text-sm">{score as number}%</span>
+            </div>
+            <div className="h-2 bg-black/5 w-full">
+              <div className="h-full bg-black transition-all" style={{ width: `${score}%` }} />
             </div>
           </div>
-        )}
+        ))}
+      </section>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-3 text-green-700">
-              Strong Areas
-            </h3>
-            {report.report.strongAreas.length > 0 ? (
-              <ul className="space-y-1">
-                {report.report.strongAreas.map((area, i) => (
-                  <li key={i} className="text-sm flex items-start gap-2">
-                    <span className="text-green-500 mt-0.5">+</span>
-                    {area}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                No strong areas identified
-              </p>
-            )}
-          </div>
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-3 text-amber-700">
-              Weak Areas
-            </h3>
-            {report.report.weakAreas.length > 0 ? (
-              <ul className="space-y-1">
-                {report.report.weakAreas.map((area, i) => (
-                  <li key={i} className="text-sm flex items-start gap-2">
-                    <span className="text-amber-500 mt-0.5">-</span>
-                    {area}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-[var(--muted-foreground)]">
-                No weak areas identified
-              </p>
-            )}
-          </div>
-        </div>
-
-        {report.report.recommendedRevision.length > 0 && (
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-3">
-              Recommended Revision
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {report.report.recommendedRevision.map((topic, i) => (
-                <span key={i} className="badge-warning">
-                  {topic}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {report.report.summary && (
-          <div className="card">
-            <h3 className="text-lg font-semibold mb-3">Summary</h3>
-            <p className="text-sm text-[var(--muted-foreground)] leading-relaxed">
-              {report.report.summary}
-            </p>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Question-by-Question Report</h3>
-          {report.evaluations.map((evaluation) => (
-            <div key={evaluation.questionNumber} className="card">
-              <button
-                onClick={() =>
-                  setExpandedQuestion(
-                    expandedQuestion === evaluation.questionNumber
-                      ? null
-                      : evaluation.questionNumber
-                  )
-                }
-                className="w-full text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <span className="font-medium text-[var(--muted-foreground)]">
-                      Question {evaluation.questionNumber}
-                    </span>
-                    <span className="badge-info capitalize">
-                      {evaluation.topic}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold">
-                      {evaluation.score}/{evaluation.maxScore}
-                    </span>
-                    <svg
-                      className={`w-4 h-4 transition-transform ${
-                        expandedQuestion === evaluation.questionNumber
-                          ? "rotate-180"
-                          : ""
-                      }`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </button>
-              {expandedQuestion === evaluation.questionNumber && (
-                <div className="mt-4 pt-4 border-t border-[var(--border)] space-y-3 text-sm">
-                  <div>
-                    <span className="font-medium text-[var(--muted-foreground)]">
-                      Question:
-                    </span>
-                    <p className="mt-1">{evaluation.question}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-[var(--muted-foreground)]">
-                      Your Answer:
-                    </span>
-                    <p className="mt-1">{evaluation.studentAnswer}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-[var(--muted-foreground)]">
-                      Correctness:
-                    </span>
-                    <span className="ml-2 capitalize">
-                      {evaluation.correctness.replace(/_/g, " ")}
-                    </span>
-                  </div>
-                  {evaluation.strengths.length > 0 &&
-                    evaluation.strengths[0] !== "" && (
-                      <div>
-                        <span className="font-medium text-green-600">
-                          Strengths:
-                        </span>
-                        <p className="mt-1">{evaluation.strengths.join("; ")}</p>
-                      </div>
-                    )}
-                  {evaluation.weaknesses.length > 0 &&
-                    evaluation.weaknesses[0] !== "" && (
-                      <div>
-                        <span className="font-medium text-amber-600">
-                          Weaknesses:
-                        </span>
-                        <p className="mt-1">
-                          {evaluation.weaknesses.join("; ")}
-                        </p>
-                      </div>
-                    )}
-                  {evaluation.missingConcepts.length > 0 &&
-                    evaluation.missingConcepts[0] !== "" && (
-                      <div>
-                        <span className="font-medium text-red-600">
-                          Missing Concepts:
-                        </span>
-                        <p className="mt-1">
-                          {evaluation.missingConcepts.join("; ")}
-                        </p>
-                      </div>
-                    )}
-                </div>
-              )}
-            </div>
+      <section className="mb-12 grid grid-cols-2 gap-8">
+        <div>
+          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Strong Areas</p>
+          {report.strongAreas.map((a) => (
+            <div key={a} className="border border-black p-3 mb-2 font-body text-sm">{a}</div>
           ))}
         </div>
-
-        <div className="text-center text-xs text-[var(--muted-foreground)] pt-8">
-          AI Viva Examiner &middot; Assessment generated by AI
+        <div>
+          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Weak Areas</p>
+          {report.weakAreas.map((a) => (
+            <div key={a} className="border border-black p-3 mb-2 font-body text-sm">{a}</div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {report.recommendedRevision.length > 0 && (
+        <section className="mb-12">
+          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Recommended Revision</p>
+          <div className="flex flex-wrap gap-2">
+            {report.recommendedRevision.map((r) => (
+              <span key={r} className="border border-black px-3 py-1 font-mono text-xs tracking-wide">{r}</span>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="mb-12">
+        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Summary</p>
+        <div className="rule-thin mb-3" />
+        <p className="font-body text-sm leading-relaxed">{report.summary}</p>
+      </section>
+
+      <section>
+        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Question by Question</p>
+        <div className="rule-ultra mb-4" />
+        {evaluations.map((ev) => (
+          <div key={ev.id} className="border-b border-black/10">
+            <button
+              onClick={() => setExpandedQ(expandedQ === ev.id ? null : ev.id)}
+              className="w-full flex items-center justify-between py-4 text-left"
+            >
+              <div className="flex-1">
+                <p className="font-body text-sm">{ev.question}</p>
+                <p className="font-mono text-xs text-black/40 mt-1">{ev.category} — {ev.score}/{ev.maxScore}</p>
+              </div>
+              <span className="font-mono text-lg ml-4">{expandedQ === ev.id ? "−" : "+"}</span>
+            </button>
+            {expandedQ === ev.id && (
+              <div className="pb-4 pl-4 border-l-2 border-black/10">
+                <p className="font-body text-sm mb-2"><span className="font-mono text-xs tracking-widest uppercase text-black/40">Answer: </span>{ev.answer}</p>
+                <p className="font-body text-sm text-black/60"><span className="font-mono text-xs tracking-widest uppercase text-black/40">Feedback: </span>{ev.feedback}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </section>
     </div>
   );
 }

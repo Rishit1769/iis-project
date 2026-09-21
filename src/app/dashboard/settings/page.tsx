@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 
 export default function SettingsPage() {
-  const [aiStatus, setAiStatus] = useState<"checking" | "connected" | "unavailable">("checking");
+  const [aiStatus, setAiStatus] = useState<
+    "checking" | "connected" | "unavailable"
+  >("checking");
 
   useEffect(() => {
     fetch("/api/ai/health")
@@ -15,47 +17,69 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <div className="max-w-2xl space-y-8">
+    <div className="max-w-2xl space-y-12">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">Settings</h1>
-        <p className="text-[var(--muted-foreground)] mt-1">
-          System configuration and status
+        <p className="font-mono text-xs uppercase tracking-widest mb-4">
+          Configuration
         </p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
+          Settings
+        </h1>
       </div>
 
-      <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">AI Gateway</h2>
-        <div className="flex items-center gap-3">
+      <div className="rule-ultra" />
+
+      {/* AI Gateway */}
+      <div className="border border-black p-8">
+        <p className="font-mono text-xs uppercase tracking-widest mb-6">
+          AI Gateway
+        </p>
+        <div className="flex items-center gap-4 mb-6">
           <div
-            className={`w-3 h-3 rounded-full ${
+            className={`w-3 h-3 ${
               aiStatus === "connected"
-                ? "bg-green-500"
+                ? "bg-black"
                 : aiStatus === "checking"
-                ? "bg-yellow-500 animate-pulse"
-                : "bg-red-500"
+                ? "bg-[#525252] animate-pulse-slow"
+                : "bg-black"
             }`}
           />
-          <span className="text-sm">
+          <span className="font-body text-sm">
             {aiStatus === "connected"
-              ? "AI Gateway Connected"
+              ? "Connected"
               : aiStatus === "checking"
-              ? "Checking connection..."
-              : "AI Gateway Unavailable"}
+              ? "Checking..."
+              : "Unavailable"}
           </span>
         </div>
-        <div className="text-sm text-[var(--muted-foreground)] space-y-1">
-          <p>Base URL: https://ai.tcetcercd.in/v1</p>
-          <p>Model: qwen3.6</p>
+        <div className="space-y-2">
+          <p className="font-mono text-xs text-[#525252]">
+            Base URL: https://ai.tcetcercd.in/v1
+          </p>
+          <p className="font-mono text-xs text-[#525252]">
+            Model: qwen3.6
+          </p>
         </div>
       </div>
 
-      <div className="card space-y-4">
-        <h2 className="text-lg font-semibold">System Information</h2>
-        <div className="text-sm text-[var(--muted-foreground)] space-y-1">
-          <p>Database: MySQL</p>
-          <p>Framework: Next.js</p>
-          <p>ORM: Prisma</p>
-          <p>PDF Processing: Text extraction only (no OCR)</p>
+      {/* System Info */}
+      <div className="border border-black p-8">
+        <p className="font-mono text-xs uppercase tracking-widest mb-6">
+          System Information
+        </p>
+        <div className="space-y-2">
+          <p className="font-mono text-xs text-[#525252]">
+            Database: MySQL
+          </p>
+          <p className="font-mono text-xs text-[#525252]">
+            Framework: Next.js 14
+          </p>
+          <p className="font-mono text-xs text-[#525252]">
+            ORM: Prisma
+          </p>
+          <p className="font-mono text-xs text-[#525252]">
+            PDF Processing: Text extraction only
+          </p>
         </div>
       </div>
     </div>

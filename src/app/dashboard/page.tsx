@@ -49,7 +49,8 @@ export default function DashboardPage() {
                 .filter((s) => s.status === "COMPLETED")
                 .reduce(
                   (sacc: number, s) =>
-                    sacc + (s.maxScore > 0 ? (s.totalScore / s.maxScore) * 100 : 0),
+                    sacc +
+                    (s.maxScore > 0 ? (s.totalScore / s.maxScore) * 100 : 0),
                   0
                 ),
             0
@@ -71,7 +72,6 @@ export default function DashboardPage() {
       v.sessions.map((s) => ({
         ...s,
         experiment: v.experiment.title,
-        vivaTitle: v.title,
       }))
     )
     .sort(
@@ -82,48 +82,73 @@ export default function DashboardPage() {
     .slice(0, 5);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-12">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+        <p className="font-mono text-xs uppercase tracking-widest mb-4">
+          Overview
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
           Dashboard
         </h1>
-        <p className="text-[var(--muted-foreground)] mt-1">
-          Overview of your viva examination system
-        </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="rule-ultra" />
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0">
         {[
-          { label: "Total Vivas", value: stats.totalVivas, color: "text-[var(--primary)]" },
-          { label: "Students Assessed", value: stats.studentsAssessed, color: "text-[var(--foreground)]" },
-          { label: "Completed Vivas", value: stats.completedVivas, color: "text-green-600" },
-          { label: "Average Score", value: `${stats.averageScore}%`, color: "text-[var(--primary)]" },
-        ].map((card) => (
-          <div key={card.label} className="card">
-            <p className="text-sm text-[var(--muted-foreground)]">{card.label}</p>
-            <p className={`text-3xl font-bold mt-2 ${card.color}`}>{card.value}</p>
+          { label: "Total Vivas", value: stats.totalVivas },
+          { label: "Students Assessed", value: stats.studentsAssessed },
+          { label: "Completed", value: stats.completedVivas },
+          { label: "Average Score", value: `${stats.averageScore}%` },
+        ].map((card, i) => (
+          <div
+            key={card.label}
+            className={`p-8 border border-black ${i > 0 ? "md:border-l-0" : ""}`}
+          >
+            <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mb-2">
+              {card.label}
+            </p>
+            <p className="font-display text-4xl font-bold">{card.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="card">
-        <h2 className="text-lg font-semibold text-[var(--foreground)] mb-4">
-          Recent Viva Sessions
-        </h2>
-        {recentSessions.length === 0 ? (
-          <p className="text-[var(--muted-foreground)] text-sm">
-            No sessions yet. Create a viva to get started.
+      {/* Recent Sessions */}
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <p className="font-mono text-xs uppercase tracking-widest">
+            Recent Viva Sessions
           </p>
+        </div>
+        <div className="rule-thick mb-6" />
+
+        {recentSessions.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="font-body text-[#525252]">
+              No sessions yet. Create a viva to get started.
+            </p>
+          </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="border border-black">
+            <table className="w-full">
               <thead>
-                <tr className="border-b border-[var(--border)]">
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">Student</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">Experiment</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">Score</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">Status</th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">Date</th>
+                <tr className="border-b border-black bg-black text-white">
+                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                    Student
+                  </th>
+                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                    Experiment
+                  </th>
+                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                    Score
+                  </th>
+                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                    Status
+                  </th>
+                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -137,37 +162,32 @@ export default function DashboardPage() {
                   return (
                     <tr
                       key={session.id}
-                      className="border-b border-[var(--border)] last:border-0"
+                      className="border-b border-[#E5E5E5] last:border-0 hover:bg-black/[0.02] transition-colors duration-100"
                     >
-                      <td className="py-3 px-4 font-medium">
+                      <td className="px-6 py-4 font-body font-medium">
                         {session.studentName}
                       </td>
-                      <td className="py-3 px-4 text-[var(--muted-foreground)]">
+                      <td className="px-6 py-4 font-body text-[#525252]">
                         {session.experiment}
                       </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{pct}%</span>
-                        <span className="text-[var(--muted-foreground)] ml-1">
-                          ({session.totalScore}/{session.maxScore})
-                        </span>
+                      <td className="px-6 py-4 font-mono text-sm">
+                        {pct}%
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="px-6 py-4">
                         <span
                           className={
                             session.status === "COMPLETED"
                               ? "badge-success"
-                              : session.status === "ACTIVE"
-                              ? "badge-warning"
                               : "badge-neutral"
                           }
                         >
                           {session.status}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-[var(--muted-foreground)]">
+                      <td className="px-6 py-4 font-mono text-xs text-[#525252]">
                         {session.completedAt
                           ? new Date(session.completedAt).toLocaleDateString()
-                          : "In progress"}
+                          : "—"}
                       </td>
                     </tr>
                   );

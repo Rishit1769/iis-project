@@ -1,20 +1,21 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setNotice("");
     setLoading(true);
 
     try {
@@ -32,8 +33,17 @@ export default function RegisterPage() {
         return;
       }
 
-      setNotice(data.message || "Account created. An administrator must approve it before you can sign in.");
-      setLoading(false);
+      const signInResult = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (signInResult?.error) {
+        router.push("/login");
+      } else {
+        window.location.href = "/dashboard";
+      }
     } catch {
       setError("Registration failed. Please try again.");
       setLoading(false);
@@ -41,20 +51,42 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[var(--background)] p-4">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[var(--primary)]">
-            AI Viva Examiner
+    <div className="min-h-screen flex">
+      {/* Left panel */}
+      <div className="hidden lg:flex lg:w-1/2 bg-black text-white items-center justify-center relative overflow-hidden">
+        <div className="texture-vertical-lines absolute inset-0" />
+        <div className="relative z-10 p-16">
+          <h1 className="font-display text-7xl font-bold tracking-tight leading-none mb-8">
+            Begin
+            <br />
+            <span className="italic">Your</span>
+            <br />
+            Journey
           </h1>
-          <p className="text-[var(--muted-foreground)] mt-2">
-            Create your account
+          <div className="rule-thick w-16 bg-white my-8" />
+          <p className="font-body text-lg text-white/60 max-w-sm">
+            Create your account and start conducting AI-powered viva
+            examinations.
           </p>
         </div>
+      </div>
 
-        <div className="card">
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
+      {/* Right panel */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 md:px-12">
+        <div className="w-full max-w-md">
+          <div className="lg:hidden mb-12">
+            <h1 className="font-display text-4xl font-bold tracking-tight">
+              AI Viva Examiner
+            </h1>
+          </div>
+
+          <p className="font-mono text-xs uppercase tracking-widest mb-4">
+            Create Account
+          </p>
+          <div className="rule-thick w-12 mb-8" />
+
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div>
               <label className="label">Full Name</label>
               <input
                 type="text"
@@ -66,19 +98,19 @@ export default function RegisterPage() {
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <label className="label">Email</label>
               <input
                 type="email"
                 className="input"
-                placeholder="teacher@tcetmumbai.in"
+                placeholder="teacher@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </div>
 
-            <div className="space-y-2">
+            <div>
               <label className="label">Password</label>
               <input
                 type="password"
@@ -92,13 +124,10 @@ export default function RegisterPage() {
             </div>
 
             {error && (
-              <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-                {error}
-              </div>
-            )}
-            {notice && (
-              <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
-                {notice}
+              <div className="border-2 border-black p-4">
+                <p className="font-mono text-xs uppercase tracking-wider">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -111,11 +140,17 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <div className="mt-4 text-center text-sm text-[var(--muted-foreground)]">
-            Already have an account?{" "}
-            <Link href="/login" className="text-[var(--primary)] hover:underline">
-              Sign in
-            </Link>
+          <div className="mt-8">
+            <div className="rule-thin mb-8" />
+            <p className="font-body text-sm text-[#525252]">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="text-black font-medium underline underline-offset-4 hover:no-underline"
+              >
+                Sign in
+              </Link>
+            </p>
           </div>
         </div>
       </div>

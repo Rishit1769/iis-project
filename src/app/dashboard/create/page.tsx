@@ -116,9 +116,7 @@ export default function CreateVivaPage() {
 
   const toggleQuestionType = (type: string) => {
     setQuestionTypes((prev) =>
-      prev.includes(type)
-        ? prev.filter((t) => t !== type)
-        : [...prev, type]
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]
     );
   };
 
@@ -130,7 +128,9 @@ export default function CreateVivaPage() {
         setExperimentId(data.experiment.id);
         setTitle("Study of Half-Wave Rectifier");
         setUploadStatus("ready");
-        setUploadMessage("✓ Demo experiment loaded\n✓ Text pre-extracted\n✓ Experiment ready");
+        setUploadMessage(
+          "✓ Demo experiment loaded\n✓ Text pre-extracted\n✓ Experiment ready"
+        );
         setSelectedFile(null);
       }
     } catch {
@@ -139,41 +139,45 @@ export default function CreateVivaPage() {
   };
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="max-w-3xl space-y-12">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
-          Create New Viva
-        </h1>
-        <p className="text-[var(--muted-foreground)] mt-1">
-          Configure a new laboratory viva examination
+        <p className="font-mono text-xs uppercase tracking-widest mb-4">
+          New Examination
         </p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
+          Create Viva
+        </h1>
       </div>
 
-      <div className="card space-y-6">
-        <div className="space-y-2">
-          <label className="label">Experiment Name *</label>
+      <div className="rule-ultra" />
+
+      <div className="space-y-12">
+        {/* Experiment Name */}
+        <div>
+          <label className="label">Experiment Name</label>
           <input
             type="text"
-            className="input"
+            className="input-full"
             placeholder="e.g. Study of Half-Wave Rectifier"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
         </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label className="label">Upload Experiment PDF *</label>
+        {/* PDF Upload */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="label mb-0">Upload Experiment PDF</label>
             <button
               type="button"
               onClick={handleSeedDemo}
-              className="text-xs text-[var(--primary)] hover:underline"
+              className="font-mono text-[10px] uppercase tracking-widest text-[#525252] hover:text-black underline underline-offset-4 transition-colors duration-100"
             >
-              Load Demo Experiment
+              Load Demo
             </button>
           </div>
           <div
-            className="border-2 border-dashed border-[var(--border)] rounded-xl p-8 text-center hover:border-[var(--primary)] transition-colors cursor-pointer"
+            className="border-2 border-dashed border-black p-12 text-center hover:bg-black hover:text-white transition-colors duration-100 cursor-pointer"
             onClick={() => fileInputRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
@@ -192,43 +196,32 @@ export default function CreateVivaPage() {
                 if (file) handleFileChange(file);
               }}
             />
-            {selectedFile && (
-              <div className="mb-3">
-                <p className="text-sm font-medium">{selectedFile.name}</p>
-                <p className="text-xs text-[var(--muted-foreground)]">
+            {selectedFile ? (
+              <div>
+                <p className="font-body font-medium">{selectedFile.name}</p>
+                <p className="font-mono text-xs mt-1 opacity-60">
                   {(selectedFile.size / 1024 / 1024).toFixed(1)} MB
                 </p>
               </div>
-            )}
-            {!selectedFile && (
+            ) : (
               <div>
-                <svg
-                  className="w-12 h-12 mx-auto text-[var(--muted-foreground)]"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={1.5}
-                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
-                  />
-                </svg>
-                <p className="mt-2 text-sm text-[var(--muted-foreground)]">
-                  Drag and drop a PDF here, or click to select
+                <p className="font-mono text-xs uppercase tracking-widest">
+                  Drag and drop a PDF here
+                </p>
+                <p className="font-body text-sm mt-2 opacity-60">
+                  or click to select
                 </p>
               </div>
             )}
           </div>
           {uploadMessage && (
             <div
-              className={`text-sm whitespace-pre-line mt-2 ${
+              className={`mt-4 p-4 border text-sm whitespace-pre-line font-mono ${
                 uploadStatus === "error"
-                  ? "text-red-600"
+                  ? "border-black bg-black text-white"
                   : uploadStatus === "ready"
-                  ? "text-green-600"
-                  : "text-[var(--muted-foreground)]"
+                  ? "border-black"
+                  : "border-[#E5E5E5]"
               }`}
             >
               {uploadStatus === "uploading" || uploadStatus === "extracting" ? (
@@ -240,11 +233,12 @@ export default function CreateVivaPage() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
-          <div className="space-y-2">
+        {/* Configuration */}
+        <div className="grid grid-cols-2 gap-8">
+          <div>
             <label className="label">Number of Questions</label>
             <select
-              className="input"
+              className="input-full"
               value={totalQuestions}
               onChange={(e) => setTotalQuestions(Number(e.target.value))}
             >
@@ -256,10 +250,10 @@ export default function CreateVivaPage() {
             </select>
           </div>
 
-          <div className="space-y-2">
+          <div>
             <label className="label">Difficulty</label>
             <select
-              className="input"
+              className="input-full"
               value={difficulty}
               onChange={(e) => setDifficulty(e.target.value)}
             >
@@ -270,11 +264,11 @@ export default function CreateVivaPage() {
             </select>
           </div>
 
-          <div className="space-y-2">
+          <div>
             <label className="label">Passing Score (%)</label>
             <input
               type="number"
-              className="input"
+              className="input-full"
               min={0}
               max={100}
               value={passingScore}
@@ -282,30 +276,24 @@ export default function CreateVivaPage() {
             />
           </div>
 
-          <div className="space-y-2">
+          <div>
             <label className="label">Adaptive Questioning</label>
-            <div className="flex items-center gap-3 mt-2">
-              <button
-                type="button"
-                onClick={() => setAdaptiveMode(!adaptiveMode)}
-                className={`relative w-11 h-6 rounded-full transition-colors ${
-                  adaptiveMode ? "bg-[var(--primary)]" : "bg-gray-300"
-                }`}
-              >
-                <div
-                  className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-                    adaptiveMode ? "translate-x-5" : ""
-                  }`}
-                />
-              </button>
-              <span className="text-sm text-[var(--muted-foreground)]">
-                {adaptiveMode ? "ON" : "OFF"}
-              </span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setAdaptiveMode(!adaptiveMode)}
+              className={`mt-2 w-full py-3 border-2 border-black font-mono text-xs uppercase tracking-widest transition-colors duration-100 ${
+                adaptiveMode
+                  ? "bg-black text-white"
+                  : "bg-white text-black"
+              }`}
+            >
+              {adaptiveMode ? "ON" : "OFF"}
+            </button>
           </div>
         </div>
 
-        <div className="space-y-2">
+        {/* Question Types */}
+        <div>
           <label className="label">Question Types</label>
           <div className="flex flex-wrap gap-2 mt-2">
             {QUESTION_TYPES.map((type) => (
@@ -313,10 +301,10 @@ export default function CreateVivaPage() {
                 key={type}
                 type="button"
                 onClick={() => toggleQuestionType(type)}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                className={`px-4 py-2 font-mono text-xs uppercase tracking-wider border border-black transition-colors duration-100 ${
                   questionTypes.includes(type)
-                    ? "bg-[var(--primary)] text-white"
-                    : "bg-[var(--secondary)] text-[var(--muted-foreground)] hover:bg-[var(--muted)]"
+                    ? "bg-black text-white"
+                    : "bg-white text-black hover:bg-black/[0.05]"
                 }`}
               >
                 {type.replace(/_/g, " ")}
@@ -325,7 +313,9 @@ export default function CreateVivaPage() {
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 border-t border-[var(--border)]">
+        {/* Actions */}
+        <div className="rule-thick pt-8" />
+        <div className="flex justify-end gap-4">
           <button
             className="btn-secondary"
             onClick={() => router.push("/dashboard")}
@@ -337,7 +327,7 @@ export default function CreateVivaPage() {
             onClick={handleCreateViva}
             disabled={!title || !experimentId || uploadStatus !== "ready"}
           >
-            Create Viva
+            Create Viva →
           </button>
         </div>
       </div>

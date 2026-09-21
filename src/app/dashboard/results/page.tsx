@@ -10,22 +10,19 @@ interface SessionResult {
   maxScore: number;
   status: string;
   completedAt: string | null;
-  viva: {
-    title: string;
-    experiment: { title: string };
-    passingScore: number;
-  };
-}
-
-interface VivaResult {
-  id: string;
-  title: string;
-  sessions: SessionResult[];
-  experiment: { title: string };
+  experiment: string;
+  passingScore: number;
 }
 
 export default function ResultsPage() {
-  const [vivas, setVivas] = useState<VivaResult[]>([]);
+  const [vivas, setVivas] = useState<
+    Array<{
+      id: string;
+      title: string;
+      sessions: SessionResult[];
+      experiment: { title: string };
+    }>
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -43,127 +40,119 @@ export default function ResultsPage() {
       v.sessions.map((s) => ({
         ...s,
         experiment: v.experiment.title,
-        vivaTitle: v.title,
-        vivaId: v.id,
+        passingScore: 50,
       }))
     )
+    .filter((s) => s.status === "COMPLETED")
     .sort(
       (a, b) =>
         new Date(b.completedAt || "").getTime() -
         new Date(a.completedAt || "").getTime()
     );
 
-  const completedSessions = allSessions.filter(
-    (s) => s.status === "COMPLETED"
-  );
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--muted-foreground)]">Loading...</div>
+        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+          Loading...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       <div>
-        <h1 className="text-2xl font-bold text-[var(--foreground)]">
+        <p className="font-mono text-xs uppercase tracking-widest mb-4">
+          Assessment Data
+        </p>
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
           Results
         </h1>
-        <p className="text-[var(--muted-foreground)] mt-1">
-          View all student assessment results
-        </p>
       </div>
 
-      {completedSessions.length === 0 ? (
-        <div className="card text-center py-12">
-          <p className="text-[var(--muted-foreground)]">
-            No completed sessions yet.
-          </p>
+      <div className="rule-ultra" />
+
+      {allSessions.length === 0 ? (
+        <div className="py-24 text-center">
+          <p className="font-body text-[#525252]">No completed sessions yet.</p>
         </div>
       ) : (
-        <div className="card">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border)]">
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Student
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Experiment
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Score
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Date
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-[var(--muted-foreground)]">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {completedSessions.map((session) => {
-                  const pct =
-                    session.maxScore > 0
-                      ? Math.round(
-                          (session.totalScore / session.maxScore) * 100
-                        )
-                      : 0;
-                  const passed =
-                    pct >= (session.viva?.passingScore || 50);
-                  return (
-                    <tr
-                      key={session.id}
-                      className="border-b border-[var(--border)] last:border-0 hover:bg-[var(--secondary)]"
-                    >
-                      <td className="py-3 px-4 font-medium">
-                        {session.studentName}
-                      </td>
-                      <td className="py-3 px-4 text-[var(--muted-foreground)]">
-                        {session.experiment}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="font-medium">{pct}%</span>
-                        <span className="text-[var(--muted-foreground)] ml-1">
-                          ({session.totalScore}/{session.maxScore})
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={passed ? "badge-success" : "badge-danger"}
-                        >
-                          {passed ? "Passed" : "Failed"}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-[var(--muted-foreground)]">
-                        {session.completedAt
-                          ? new Date(
-                              session.completedAt
-                            ).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="py-3 px-4">
-                        <Link
-                          href={`/viva/report/${session.id}`}
-                          target="_blank"
-                          className="text-[var(--primary)] text-sm hover:underline"
-                        >
-                          View Report
-                        </Link>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        <div className="border border-black">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-black bg-black text-white">
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Student
+                </th>
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Experiment
+                </th>
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Score
+                </th>
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Status
+                </th>
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Date
+                </th>
+                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {allSessions.map((session) => {
+                const pct =
+                  session.maxScore > 0
+                    ? Math.round(
+                        (session.totalScore / session.maxScore) * 100
+                      )
+                    : 0;
+                const passed = pct >= session.passingScore;
+                return (
+                  <tr
+                    key={session.id}
+                    className="border-b border-[#E5E5E5] last:border-0 hover:bg-black/[0.02] transition-colors duration-100"
+                  >
+                    <td className="px-6 py-4 font-body font-medium">
+                      {session.studentName}
+                    </td>
+                    <td className="px-6 py-4 font-body text-[#525252]">
+                      {session.experiment}
+                    </td>
+                    <td className="px-6 py-4 font-mono text-sm font-bold">
+                      {pct}%
+                    </td>
+                    <td className="px-6 py-4">
+                      <span
+                        className={
+                          passed ? "badge-success" : "badge-danger"
+                        }
+                      >
+                        {passed ? "Passed" : "Failed"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 font-mono text-xs text-[#525252]">
+                      {session.completedAt
+                        ? new Date(session.completedAt).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <Link
+                        href={`/viva/report/${session.id}`}
+                        target="_blank"
+                        className="font-mono text-[10px] uppercase tracking-widest underline underline-offset-4 hover:no-underline"
+                      >
+                        View Report
+                      </Link>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

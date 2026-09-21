@@ -10,18 +10,14 @@ interface VivaDetail {
   sessionCode: string;
   totalQuestions: number;
   difficulty: string;
-  adaptiveMode: boolean;
   passingScore: number;
-  questionTypes: string;
-  experiment: { id: string; title: string; originalFileName: string };
+  experiment: { id: string; title: string };
   sessions: Array<{
     id: string;
     studentName: string;
     status: string;
     totalScore: number;
     maxScore: number;
-    startedAt: string;
-    completedAt: string | null;
     currentQuestion: number;
     questions: Array<{
       id: string;
@@ -37,7 +33,6 @@ interface VivaDetail {
         correctness: string;
         strengths: string;
         weaknesses: string;
-        missingConcepts: string;
       } | null;
     }>;
   }>;
@@ -62,202 +57,215 @@ export default function VivaDetailPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-[var(--muted-foreground)]">Loading...</div>
+        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+          Loading...
+        </div>
       </div>
     );
   }
 
   if (!viva) {
     return (
-      <div className="card text-center py-12">
-        <p className="text-[var(--muted-foreground)]">Viva not found.</p>
+      <div className="py-24 text-center">
+        <p className="font-body text-[#525252]">Viva not found.</p>
       </div>
     );
   }
-
-  const completedSessions = viva.sessions.filter(
-    (s) => s.status === "COMPLETED"
-  );
-  const activeSessions = viva.sessions.filter((s) => s.status === "ACTIVE");
 
   const selectedSessionData = viva.sessions.find(
     (s) => s.id === selectedSession
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <Link
-            href="/dashboard/vivas"
-            className="text-sm text-[var(--muted-foreground)] hover:text-[var(--primary)]"
-          >
-            ← Back to My Vivas
-          </Link>
-          <h1 className="text-2xl font-bold text-[var(--foreground)] mt-2">
-            {viva.title}
-          </h1>
-          <p className="text-[var(--muted-foreground)] mt-1">
-            {viva.experiment.title}
-          </p>
-        </div>
-        <div className="text-right">
-          <div className="font-mono text-sm bg-[var(--secondary)] px-3 py-1.5 rounded-lg">
-            Session Code: {viva.sessionCode}
-          </div>
-          <p className="text-xs text-[var(--muted-foreground)] mt-2">
-            Share this code with students
-          </p>
-        </div>
+    <div className="space-y-12">
+      <div>
+        <Link
+          href="/dashboard/vivas"
+          className="font-mono text-[10px] uppercase tracking-widest text-[#525252] hover:text-black underline underline-offset-4 hover:no-underline transition-colors duration-100"
+        >
+          ← Back to My Vivas
+        </Link>
+        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mt-4">
+          {viva.title}
+        </h1>
+        <p className="font-body text-lg text-[#525252] mt-2">
+          {viva.experiment.title}
+        </p>
       </div>
 
-      <div className="grid grid-cols-4 gap-4">
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-[var(--primary)]">
+      <div className="rule-ultra" />
+
+      {/* Session Code */}
+      <div className="border border-black p-6 inline-block">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mb-2">
+          Session Code
+        </p>
+        <p className="font-mono text-3xl font-bold tracking-widest">
+          {viva.sessionCode}
+        </p>
+        <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mt-2">
+          Share with students
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-3 gap-0">
+        <div className="p-6 border border-black text-center">
+          <p className="font-display text-3xl font-bold">
             {viva.totalQuestions}
           </p>
-          <p className="text-xs text-[var(--muted-foreground)]">Questions</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold">{completedSessions.length}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">Completed</p>
-        </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-amber-600">
-            {activeSessions.length}
+          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
+            Questions
           </p>
-          <p className="text-xs text-[var(--muted-foreground)]">In Progress</p>
         </div>
-        <div className="card text-center">
-          <p className="text-2xl font-bold text-[var(--primary)] capitalize">
+        <div className="p-6 border border-black border-l-0 text-center">
+          <p className="font-display text-3xl font-bold">
+            {viva.sessions.filter((s) => s.status === "COMPLETED").length}
+          </p>
+          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
+            Completed
+          </p>
+        </div>
+        <div className="p-6 border border-black border-l-0 text-center">
+          <p className="font-display text-3xl font-bold capitalize">
             {viva.difficulty}
           </p>
-          <p className="text-xs text-[var(--muted-foreground)]">Difficulty</p>
+          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
+            Difficulty
+          </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-4">
-          <h2 className="text-lg font-semibold">Student Sessions</h2>
+      {/* Sessions + Detail */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+          <p className="font-mono text-xs uppercase tracking-widest mb-4">
+            Student Sessions
+          </p>
+          <div className="rule-thin mb-4" />
           {viva.sessions.length === 0 ? (
-            <div className="card text-center py-8">
-              <p className="text-sm text-[var(--muted-foreground)]">
-                No sessions yet
-              </p>
+            <div className="py-12 text-center border border-[#E5E5E5]">
+              <p className="font-mono text-xs text-[#525252]">No sessions yet</p>
             </div>
           ) : (
-            viva.sessions.map((session) => {
-              const pct =
-                session.maxScore > 0
-                  ? Math.round((session.totalScore / session.maxScore) * 100)
-                  : 0;
-              return (
-                <button
-                  key={session.id}
-                  onClick={() => setSelectedSession(session.id)}
-                  className={`w-full card text-left transition-all ${
-                    selectedSession === session.id
-                      ? "ring-2 ring-[var(--primary)]"
-                      : "hover:shadow-md"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{session.studentName}</span>
-                    <span
-                      className={
-                        session.status === "COMPLETED"
-                          ? "badge-success"
-                          : "badge-warning"
-                      }
-                    >
-                      {session.status}
-                    </span>
-                  </div>
-                  {session.status === "COMPLETED" && (
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                      Score: {pct}% ({session.totalScore}/{session.maxScore})
-                    </p>
-                  )}
-                  {session.status === "ACTIVE" && (
-                    <p className="text-sm text-[var(--muted-foreground)] mt-1">
-                      Question {session.currentQuestion}/{viva.totalQuestions}
-                    </p>
-                  )}
-                </button>
-              );
-            })
+            <div className="space-y-0">
+              {viva.sessions.map((session) => {
+                const pct =
+                  session.maxScore > 0
+                    ? Math.round(
+                        (session.totalScore / session.maxScore) * 100
+                      )
+                    : 0;
+                return (
+                  <button
+                    key={session.id}
+                    onClick={() => setSelectedSession(session.id)}
+                    className={`w-full text-left p-4 border border-black transition-colors duration-100 ${
+                      selectedSession === session.id
+                        ? "bg-black text-white"
+                        : "hover:bg-black/[0.03]"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-body font-medium text-sm">
+                        {session.studentName}
+                      </span>
+                      <span
+                        className={
+                          session.status === "COMPLETED"
+                            ? selectedSession === session.id
+                              ? "badge-success bg-white text-black border-white"
+                              : "badge-success"
+                            : "badge-neutral"
+                        }
+                      >
+                        {session.status}
+                      </span>
+                    </div>
+                    {session.status === "COMPLETED" && (
+                      <p className="font-mono text-xs mt-1 opacity-60">
+                        Score: {pct}% ({session.totalScore}/{session.maxScore})
+                      </p>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
 
         <div className="lg:col-span-2">
           {selectedSessionData ? (
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">
-                {selectedSessionData.studentName}&apos;s Assessment
-              </h2>
-              {selectedSessionData.status === "COMPLETED" ? (
-                <Link
-                  href={`/viva/report/${selectedSessionData.id}`}
-                  target="_blank"
-                  className="btn-primary inline-block"
-                >
-                  View Full Report
-                </Link>
-              ) : null}
-              <div className="space-y-3">
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <p className="font-mono text-xs uppercase tracking-widest">
+                  {selectedSessionData.studentName}&apos;s Assessment
+                </p>
+                {selectedSessionData.status === "COMPLETED" && (
+                  <Link
+                    href={`/viva/report/${selectedSessionData.id}`}
+                    target="_blank"
+                    className="btn-primary text-[10px]"
+                  >
+                    View Full Report →
+                  </Link>
+                )}
+              </div>
+              <div className="rule-thin" />
+
+              <div className="space-y-4">
                 {selectedSessionData.questions.map((q) => (
-                  <div key={q.id} className="card">
-                    <div className="flex items-start justify-between mb-2">
-                      <span className="text-sm font-medium text-[var(--muted-foreground)]">
+                  <div key={q.id} className="border border-black p-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-mono text-[10px] uppercase tracking-widest">
                         Question {q.questionNumber}
                       </span>
                       {q.answer && (
-                        <span className="badge-info">
+                        <span className="font-mono text-sm font-bold">
                           {q.answer.score}/{q.answer.maxScore}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-medium mb-2">{q.text}</p>
-                    {q.answer && (
-                      <div className="mt-3 space-y-2 text-sm">
-                        <div>
-                          <span className="text-[var(--muted-foreground)]">
+                    <p className="font-body font-medium mb-3">{q.text}</p>
+                    {q.answer ? (
+                      <div className="space-y-2 text-sm">
+                        <div className="border-t border-[#E5E5E5] pt-3">
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
                             Answer:{" "}
                           </span>
-                          <span>{q.answer.answerText}</span>
+                          <span className="font-body">{q.answer.answerText}</span>
                         </div>
                         <div>
-                          <span className="text-[var(--muted-foreground)]">
+                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
                             Correctness:{" "}
                           </span>
-                          <span className="capitalize">
+                          <span className="font-mono text-xs uppercase">
                             {q.answer.correctness.replace(/_/g, " ")}
                           </span>
                         </div>
                         {q.answer.strengths !== "[]" && (
                           <div>
-                            <span className="text-green-600">
+                            <span className="font-mono text-[10px] uppercase tracking-widest">
                               Strengths:{" "}
                             </span>
-                            <span>
+                            <span className="font-body text-sm">
                               {JSON.parse(q.answer.strengths).join(", ")}
                             </span>
                           </div>
                         )}
                         {q.answer.weaknesses !== "[]" && (
                           <div>
-                            <span className="text-amber-600">
+                            <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
                               Weaknesses:{" "}
                             </span>
-                            <span>
+                            <span className="font-body text-sm">
                               {JSON.parse(q.answer.weaknesses).join(", ")}
                             </span>
                           </div>
                         )}
                       </div>
-                    )}
-                    {!q.answer && (
-                      <p className="text-sm text-[var(--muted-foreground)] italic">
+                    ) : (
+                      <p className="font-body text-sm italic text-[#525252]">
                         Awaiting answer
                       </p>
                     )}
@@ -266,8 +274,8 @@ export default function VivaDetailPage() {
               </div>
             </div>
           ) : (
-            <div className="card text-center py-16">
-              <p className="text-[var(--muted-foreground)]">
+            <div className="py-24 text-center border border-[#E5E5E5]">
+              <p className="font-body text-[#525252]">
                 Select a student session to view details
               </p>
             </div>

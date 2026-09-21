@@ -39,9 +39,8 @@ export default function VivaExamPage() {
   const sessionId = params.id as string;
 
   const [session, setSession] = useState<SessionData | null>(null);
-  const [currentQuestion, setCurrentQuestion] = useState<QuestionData | null>(
-    null
-  );
+  const [currentQuestion, setCurrentQuestion] =
+    useState<QuestionData | null>(null);
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -99,23 +98,7 @@ export default function VivaExamPage() {
         return;
       }
 
-      if (
-        data.questions.length > 0 &&
-        !data.questions[data.questions.length - 1].answer
-      ) {
-        setCurrentQuestion({
-          questionId: data.questions[data.questions.length - 1].id,
-          questionNumber: data.questions[data.questions.length - 1].questionNumber,
-          question: data.questions[data.questions.length - 1].text,
-          topic: "",
-          difficulty: "",
-          type: "",
-          totalQuestions: data.totalQuestions,
-        });
-        setPhase("question");
-      } else {
-        await generateNextQuestion();
-      }
+      await generateNextQuestion();
       setLoading(false);
     };
     init();
@@ -168,11 +151,9 @@ export default function VivaExamPage() {
 
   if (loading && !session) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="animate-pulse-slow text-lg text-[var(--muted-foreground)]">
-            Loading examination...
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+          Loading examination...
         </div>
       </div>
     );
@@ -180,10 +161,11 @@ export default function VivaExamPage() {
 
   if (error && phase === "error") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="card max-w-md text-center space-y-4">
-          <div className="text-red-600 text-lg font-medium">Error</div>
-          <p className="text-[var(--muted-foreground)]">{error}</p>
+      <div className="min-h-screen flex items-center justify-center bg-white px-6">
+        <div className="w-full max-w-md border border-black p-8 text-center space-y-6">
+          <p className="font-mono text-xs uppercase tracking-widest">Error</p>
+          <div className="rule-thin" />
+          <p className="font-body text-[#525252]">{error}</p>
           <button
             onClick={() => {
               setError("");
@@ -204,89 +186,94 @@ export default function VivaExamPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
-      <div className="max-w-2xl mx-auto p-4 py-8">
-        <div className="text-center mb-2">
-          <h1 className="text-xl font-bold text-[var(--primary)]">
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <div className="border-b border-black px-6 py-4">
+        <div className="max-w-2xl mx-auto flex items-center justify-between">
+          <h1 className="font-display text-lg font-bold tracking-tight">
             AI Viva Examiner
           </h1>
+          {session && (
+            <span className="font-mono text-[10px] uppercase tracking-widest">
+              {session.studentName}
+            </span>
+          )}
         </div>
+      </div>
+
+      <div className="max-w-2xl mx-auto px-6 py-12">
+        {/* Progress */}
         {session && (
-          <div className="text-center mb-8">
-            <h2 className="text-lg font-semibold text-[var(--foreground)]">
-              {session.viva.experiment.title}
-            </h2>
-            <p className="text-sm text-[var(--muted-foreground)] mt-1">
-              {session.studentName} &middot; Question{" "}
-              {currentQuestion?.questionNumber || session.currentQuestion} of{" "}
-              {session.totalQuestions}
-            </p>
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-3">
+              <p className="font-display text-xl font-bold">
+                {session.viva.experiment.title}
+              </p>
+              <span className="font-mono text-xs">
+                {currentQuestion?.questionNumber || session.currentQuestion} /{" "}
+                {session.totalQuestions}
+              </span>
+            </div>
+            <div className="w-full h-1 bg-[#E5E5E5]">
+              <div
+                className="h-1 bg-black transition-all duration-500"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         )}
 
-        <div className="w-full bg-gray-200 rounded-full h-2 mb-8">
-          <div
-            className="bg-[var(--primary)] h-2 rounded-full transition-all duration-500"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-
-        {phase === "loading" && (
-          <div className="card text-center py-16">
-            <div className="animate-pulse-slow text-[var(--muted-foreground)]">
+        {/* Loading state */}
+        {(phase === "loading" || phase === "next") && (
+          <div className="py-24 text-center">
+            {phase === "next" && (
+              <p className="font-mono text-xs uppercase tracking-widest mb-4 text-[#525252]">
+                Answer recorded.
+              </p>
+            )}
+            <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
               Examiner is preparing your question...
             </div>
           </div>
         )}
 
+        {/* Submitting */}
         {phase === "submitting" && (
-          <div className="card text-center py-16">
-            <div className="animate-pulse-slow text-[var(--muted-foreground)]">
+          <div className="py-24 text-center">
+            <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
               Recording answer...
             </div>
           </div>
         )}
 
-        {phase === "next" && (
-          <div className="card text-center py-16">
-            <div className="text-green-600 font-medium mb-2">
-              Answer recorded.
-            </div>
-            <div className="animate-pulse-slow text-[var(--muted-foreground)]">
-              Examiner is preparing the next question...
-            </div>
-          </div>
-        )}
-
+        {/* Question */}
         {phase === "question" && currentQuestion && (
-          <div className="space-y-6">
-            <div className="card">
-              <div className="flex items-center gap-2 mb-4">
-                <span className="badge-info capitalize">
+          <div className="space-y-8">
+            {/* Question */}
+            <div className="border border-black p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <span className="font-mono text-[10px] uppercase tracking-widest border border-black px-2 py-0.5">
                   {currentQuestion.type?.replace(/_/g, " ") || "Question"}
                 </span>
-                <span className="badge-neutral capitalize">
+                <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
                   {currentQuestion.difficulty}
                 </span>
               </div>
-              <div className="space-y-1 mb-2">
-                <span className="text-xs font-medium text-[var(--primary)] uppercase tracking-wide">
-                  Examiner Question
-                </span>
-              </div>
-              <p className="text-lg text-[var(--foreground)] leading-relaxed">
+              <p className="font-mono text-[10px] uppercase tracking-widest mb-3">
+                Examiner Question
+              </p>
+              <p className="font-display text-xl md:text-2xl font-bold leading-snug">
                 {currentQuestion.question}
               </p>
             </div>
 
-            <div className="card">
-              <div className="space-y-1 mb-3">
-                <span className="text-xs font-medium text-[var(--primary)] uppercase tracking-wide">
-                  Your Answer
-                </span>
-              </div>
+            {/* Answer */}
+            <div className="border border-black p-8">
+              <p className="font-mono text-[10px] uppercase tracking-widest mb-4">
+                Your Answer
+              </p>
               <textarea
-                className="input min-h-[160px] resize-y"
+                className="input-full min-h-[160px] resize-y font-body"
                 placeholder="Type your answer here..."
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
@@ -294,26 +281,16 @@ export default function VivaExamPage() {
               />
             </div>
 
+            {/* Submit */}
             <div className="text-center">
               <button
-                className="btn-primary px-8 py-3 text-base"
+                className="btn-primary px-12"
                 onClick={handleSubmitAnswer}
                 disabled={!answer.trim() || submitting}
               >
-                {submitting ? "Submitting..." : "Submit Answer"}
+                Submit Answer →
               </button>
             </div>
-          </div>
-        )}
-
-        {phase === "complete" && (
-          <div className="card text-center py-16">
-            <div className="text-lg font-medium text-[var(--foreground)] mb-2">
-              Examination Complete
-            </div>
-            <p className="text-[var(--muted-foreground)]">
-              Preparing your assessment report...
-            </p>
           </div>
         )}
       </div>
