@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 interface Viva {
   id: string;
   title: string;
   sessionCode: string;
+  totalQuestions: number;
+  difficulty: string;
+  createdAt: string;
+  experiment: { title: string };
   sessions: Array<{
     id: string;
     studentName: string;
+    status: string;
     totalScore: number;
     maxScore: number;
-    status: string;
     completedAt: string | null;
   }>;
-  experiment: { title: string };
-  createdAt: string;
 }
 
 export default function DashboardPage() {
@@ -34,33 +37,26 @@ export default function DashboardPage() {
         if (Array.isArray(data)) {
           setVivas(data);
           const totalSessions = data.reduce(
-            (acc: number, v: Viva) => acc + v.sessions.length,
-            0
+            (acc: number, v: Viva) => acc + v.sessions.length, 0
           );
           const completed = data.reduce(
             (acc: number, v: Viva) =>
-              acc + v.sessions.filter((s) => s.status === "COMPLETED").length,
-            0
+              acc + v.sessions.filter((s) => s.status === "COMPLETED").length, 0
           );
           const totalScore = data.reduce(
             (acc: number, v: Viva) =>
-              acc +
-              v.sessions
+              acc + v.sessions
                 .filter((s) => s.status === "COMPLETED")
                 .reduce(
                   (sacc: number, s) =>
-                    sacc +
-                    (s.maxScore > 0 ? (s.totalScore / s.maxScore) * 100 : 0),
-                  0
-                ),
-            0
+                    sacc + (s.maxScore > 0 ? (s.totalScore / s.maxScore) * 100 : 0), 0
+                ), 0
           );
           setStats({
             totalVivas: data.length,
             studentsAssessed: totalSessions,
             completedVivas: completed,
-            averageScore:
-              completed > 0 ? Math.round(totalScore / completed) : 0,
+            averageScore: completed > 0 ? Math.round(totalScore / completed) : 0,
           });
         }
       })
@@ -69,84 +65,75 @@ export default function DashboardPage() {
 
   const recentSessions = vivas
     .flatMap((v) =>
-      v.sessions.map((s) => ({
-        ...s,
-        experiment: v.experiment.title,
-      }))
+      v.sessions.map((s) => ({ ...s, experiment: v.experiment.title, vivaTitle: v.title }))
     )
-    .sort(
-      (a, b) =>
-        new Date(b.completedAt || "").getTime() -
-        new Date(a.completedAt || "").getTime()
-    )
+    .sort((a, b) => new Date(b.completedAt || "").getTime() - new Date(a.completedAt || "").getTime())
     .slice(0, 5);
 
   return (
-    <div className="space-y-12">
+    <div className="max-w-5xl space-y-8">
+      {/* Header */}
       <div>
-        <p className="font-mono text-xs uppercase tracking-widest mb-4">
-          Overview
+        <h1 className="text-2xl font-semibold">Dashboard</h1>
+        <p className="text-text-secondary text-sm mt-1">
+          Overview of your viva examination system
         </p>
-        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
-          Dashboard
-        </h1>
       </div>
 
-      <div className="rule-ultra" />
-
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { label: "Total Vivas", value: stats.totalVivas },
           { label: "Students Assessed", value: stats.studentsAssessed },
           { label: "Completed", value: stats.completedVivas },
-          { label: "Average Score", value: `${stats.averageScore}%` },
-        ].map((card, i) => (
-          <div
-            key={card.label}
-            className={`p-8 border border-black ${i > 0 ? "md:border-l-0" : ""}`}
-          >
-            <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mb-2">
+          { label: "Avg Score", value: `${stats.averageScore}%` },
+        ].map((card) => (
+          <div key={card.label} className="card">
+            <p className="text-2xs text-text-muted uppercase tracking-wider font-medium">
               {card.label}
             </p>
-            <p className="font-display text-4xl font-bold">{card.value}</p>
+            <p className="text-2xl font-semibold mt-1">{card.value}</p>
           </div>
         ))}
       </div>
 
       {/* Recent Sessions */}
       <div>
-        <div className="flex items-center justify-between mb-6">
-          <p className="font-mono text-xs uppercase tracking-widest">
-            Recent Viva Sessions
-          </p>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-sm font-semibold">Recent Sessions</h2>
+          <Link href="/dashboard/results" className="text-xs text-accent hover:text-accent-hover transition-colors">
+            View all
+          </Link>
         </div>
-        <div className="rule-thick mb-6" />
 
         {recentSessions.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="font-body text-[#525252]">
-              No sessions yet. Create a viva to get started.
-            </p>
+          <div className="card text-center py-10">
+            <p className="text-text-muted text-sm">No sessions yet</p>
+            <Link
+              href="/dashboard/create"
+              className="text-accent text-sm mt-2 inline-block hover:text-accent-hover"
+            >
+              Create your first viva
+            </Link>
           </div>
         ) : (
-          <div className="border border-black">
-            <table className="w-full">
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-black bg-black text-white">
-                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                <tr className="bg-bg-elevated border-b border-border">
+                  <th className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">
                     Student
                   </th>
-                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  <th className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">
                     Experiment
                   </th>
-                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  <th className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">
                     Score
                   </th>
-                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  <th className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">
                     Status
                   </th>
-                  <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
+                  <th className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">
                     Date
                   </th>
                 </tr>
@@ -155,36 +142,28 @@ export default function DashboardPage() {
                 {recentSessions.map((session) => {
                   const pct =
                     session.maxScore > 0
-                      ? Math.round(
-                          (session.totalScore / session.maxScore) * 100
-                        )
+                      ? Math.round((session.totalScore / session.maxScore) * 100)
                       : 0;
                   return (
                     <tr
                       key={session.id}
-                      className="border-b border-[#E5E5E5] last:border-0 hover:bg-black/[0.02] transition-colors duration-100"
+                      className="border-b border-border last:border-0 hover:bg-bg-hover transition-colors"
                     >
-                      <td className="px-6 py-4 font-body font-medium">
-                        {session.studentName}
-                      </td>
-                      <td className="px-6 py-4 font-body text-[#525252]">
-                        {session.experiment}
-                      </td>
-                      <td className="px-6 py-4 font-mono text-sm">
-                        {pct}%
-                      </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 font-medium">{session.studentName}</td>
+                      <td className="px-4 py-3 text-text-secondary">{session.experiment}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{pct}%</td>
+                      <td className="px-4 py-3">
                         <span
                           className={
                             session.status === "COMPLETED"
                               ? "badge-success"
-                              : "badge-neutral"
+                              : "badge-warning"
                           }
                         >
                           {session.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 font-mono text-xs text-[#525252]">
+                      <td className="px-4 py-3 text-text-muted text-xs font-mono">
                         {session.completedAt
                           ? new Date(session.completedAt).toLocaleDateString()
                           : "—"}

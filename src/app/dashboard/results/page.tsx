@@ -11,143 +11,60 @@ interface SessionResult {
   status: string;
   completedAt: string | null;
   experiment: string;
-  passingScore: number;
 }
 
 export default function ResultsPage() {
-  const [vivas, setVivas] = useState<
-    Array<{
-      id: string;
-      title: string;
-      sessions: SessionResult[];
-      experiment: { title: string };
-    }>
-  >([]);
+  const [sessions, setSessions] = useState<SessionResult[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/vivas")
       .then((r) => r.json())
       .then((data) => {
-        if (Array.isArray(data)) setVivas(data);
+        if (Array.isArray(data)) {
+          const all = data.flatMap((v: { sessions: Array<SessionResult & { experiment?: unknown }>; experiment: { title: string } }) =>
+            v.sessions.map((s) => ({ ...s, experiment: v.experiment.title }))
+          ).filter((s: SessionResult) => s.status === "COMPLETED");
+          setSessions(all);
+        }
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const allSessions = vivas
-    .flatMap((v) =>
-      v.sessions.map((s) => ({
-        ...s,
-        experiment: v.experiment.title,
-        passingScore: 50,
-      }))
-    )
-    .filter((s) => s.status === "COMPLETED")
-    .sort(
-      (a, b) =>
-        new Date(b.completedAt || "").getTime() -
-        new Date(a.completedAt || "").getTime()
-    );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
-          Loading...
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-text-muted text-sm py-20 text-center">Loading...</div>;
 
   return (
-    <div className="space-y-12">
+    <div className="max-w-4xl space-y-6">
       <div>
-        <p className="font-mono text-xs uppercase tracking-widest mb-4">
-          Assessment Data
-        </p>
-        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight">
-          Results
-        </h1>
+        <h1 className="text-2xl font-semibold">Results</h1>
+        <p className="text-text-secondary text-sm mt-1">All completed viva sessions</p>
       </div>
 
-      <div className="rule-ultra" />
-
-      {allSessions.length === 0 ? (
-        <div className="py-24 text-center">
-          <p className="font-body text-[#525252]">No completed sessions yet.</p>
-        </div>
+      {sessions.length === 0 ? (
+        <div className="card text-center py-12"><p className="text-text-muted text-sm">No completed sessions yet.</p></div>
       ) : (
-        <div className="border border-black">
-          <table className="w-full">
+        <div className="border border-border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-black bg-black text-white">
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Student
-                </th>
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Experiment
-                </th>
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Score
-                </th>
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Status
-                </th>
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Date
-                </th>
-                <th className="text-left px-6 py-3 font-mono text-[10px] uppercase tracking-widest font-normal">
-                  Action
-                </th>
+              <tr className="bg-bg-elevated border-b border-border">
+                {["Student", "Experiment", "Score", "Status", "Date", "Action"].map((h) => (
+                  <th key={h} className="text-left px-4 py-2.5 text-2xs font-medium text-text-muted uppercase tracking-wider">{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {allSessions.map((session) => {
-                const pct =
-                  session.maxScore > 0
-                    ? Math.round(
-                        (session.totalScore / session.maxScore) * 100
-                      )
-                    : 0;
-                const passed = pct >= session.passingScore;
+              {sessions.map((s) => {
+                const pct = s.maxScore > 0 ? Math.round((s.totalScore / s.maxScore) * 100) : 0;
+                const passed = pct >= 50;
                 return (
-                  <tr
-                    key={session.id}
-                    className="border-b border-[#E5E5E5] last:border-0 hover:bg-black/[0.02] transition-colors duration-100"
-                  >
-                    <td className="px-6 py-4 font-body font-medium">
-                      {session.studentName}
-                    </td>
-                    <td className="px-6 py-4 font-body text-[#525252]">
-                      {session.experiment}
-                    </td>
-                    <td className="px-6 py-4 font-mono text-sm font-bold">
-                      {pct}%
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={
-                          passed ? "badge-success" : "badge-danger"
-                        }
-                      >
-                        {passed ? "Passed" : "Failed"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-[#525252]">
-                      {session.completedAt
-                        ? new Date(session.completedAt).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <Link
-                        href={`/viva/report/${session.id}`}
-                        target="_blank"
-                        className="font-mono text-[10px] uppercase tracking-widest underline underline-offset-4 hover:no-underline"
-                      >
-                        View Report
-                      </Link>
-                    </td>
+                  <tr key={s.id} className="border-b border-border last:border-0 hover:bg-bg-hover transition-colors">
+                    <td className="px-4 py-3 font-medium">{s.studentName}</td>
+                    <td className="px-4 py-3 text-text-secondary text-xs">{s.experiment}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{pct}%</td>
+                    <td className="px-4 py-3"><span className={passed ? "badge-success" : "badge-error"}>{passed ? "Passed" : "Failed"}</span></td>
+                    <td className="px-4 py-3 text-text-muted text-xs font-mono">{s.completedAt ? new Date(s.completedAt).toLocaleDateString() : "—"}</td>
+                    <td className="px-4 py-3"><Link href={`/viva/report/${s.id}`} target="_blank" className="text-accent text-xs hover:text-accent-hover">Report →</Link></td>
                   </tr>
                 );
               })}

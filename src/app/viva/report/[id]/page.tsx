@@ -2,143 +2,156 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 
 interface ReportData {
   session: { id: string; studentName: string; totalScore: number; maxScore: number; startedAt: string; completedAt: string };
   viva: { title: string; experimentTitle: string; passingScore: number };
   report: { overallScore: number; maxScore: number; percentage: number; status: string; categoryPerformance: Record<string, number>; strongAreas: string[]; weakAreas: string[]; recommendedRevision: string[]; summary: string };
-  evaluations: { id: string; question: string; answer: string; score: number; maxScore: number; feedback: string; category: string }[];
+  evaluations: Array<{ questionNumber: number; question: string; studentAnswer: string; score: number; maxScore: number; correctness: string; topic: string; strengths: string[]; weaknesses: string[]; missingConcepts: string[] }>;
 }
 
-export default function VivaReportPage() {
+export default function ReportPage() {
   const params = useParams();
-  const [data, setData] = useState<ReportData | null>(null);
+  const sessionId = params.id as string;
+  const [report, setReport] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [expandedQ, setExpandedQ] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(`/api/sessions/${params.id}/report`)
-      .then((r) => { if (!r.ok) throw new Error("Failed to load report"); return r.json(); })
-      .then(setData)
-      .catch((e) => setError(e.message))
+    fetch(`/api/sessions/${sessionId}/report`)
+      .then((r) => { if (!r.ok) throw new Error("Report not available"); return r.json(); })
+      .then(setReport)
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [params.id]);
+  }, [sessionId]);
 
-  if (loading) return (
-    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
-      <div className="h-8 w-64 bg-black/5 animate-pulse-slow mb-8" />
-      <div className="h-32 w-full bg-black/5 animate-pulse-slow mb-4" />
-      <div className="h-48 w-full bg-black/5 animate-pulse-slow" />
-    </div>
-  );
+  if (loading) return <div className="min-h-screen bg-bg flex items-center justify-center text-text-muted text-sm">Loading report...</div>;
+  if (error || !report) return <div className="min-h-screen bg-bg flex items-center justify-center text-text-muted text-sm">{error || "Report not available."}</div>;
 
-  if (error || !data) return (
-    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
-      <div className="border border-black p-8 text-center">
-        <p className="font-mono text-sm tracking-widest uppercase">Error</p>
-        <p className="font-body mt-2">{error || "Report not found"}</p>
+  return (
+    <div className="min-h-screen bg-bg">
+      <div className="max-w-3xl mx-auto px-4 py-10 space-y-8">
+        {/* Header */}
+        <div>
+          <p className="text-2xs text-text-muted font-mono uppercase tracking-wider mb-2">Assessment Report</p>
+          <h1 className="text-xl font-semibold">{report.viva.experimentTitle}</h1>
+          <p className="text-sm text-text-secondary mt-1">{report.session.studentName}</p>
+        </div>
+
+        <div className="divider" />
+
+        {/* Score */}
+        <div className="card text-center py-8">
+          <p className="text-4xl font-bold">{report.report.percentage}%</p>
+          <p className="text-sm text-text-secondary mt-1">{report.report.overallScore} / {report.report.maxScore} points</p>
+          <div className={cn("inline-block px-3 py-1 rounded text-xs font-medium mt-3", report.report.status === "PASSED" ? "bg-success-muted text-success" : "bg-error-muted text-error")}>
+            {report.report.status}
+          </div>
+          <p className="text-2xs text-text-muted mt-3">Passing: {report.viva.passingScore}%</p>
+        </div>
+
+        {/* Category Performance */}
+        {Object.keys(report.report.categoryPerformance).length > 0 && (
+          <div>
+            <p className="text-xs font-medium text-text-secondary mb-3">Performance by category</p>
+            <div className="space-y-3">
+              {Object.entries(report.report.categoryPerformance).map(([cat, pct]) => (
+                <div key={cat}>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>{cat}</span>
+                    <span className="font-mono text-xs">{Math.round(pct as number)}%</span>
+                  </div>
+                  <div className="progress-bar">
+                    <div className="progress-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Strong / Weak */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="card">
+            <p className="text-xs font-medium text-success mb-2">Strong areas</p>
+            <ul className="space-y-1">
+              {report.report.strongAreas.map((a, i) => <li key={i} className="text-sm text-text-secondary">• {a}</li>)}
+              {report.report.strongAreas.length === 0 && <li className="text-sm text-text-muted">None identified</li>}
+            </ul>
+          </div>
+          <div className="card">
+            <p className="text-xs font-medium text-warning mb-2">Needs review</p>
+            <ul className="space-y-1">
+              {report.report.weakAreas.map((a, i) => <li key={i} className="text-sm text-text-secondary">• {a}</li>)}
+              {report.report.weakAreas.length === 0 && <li className="text-sm text-text-muted">None identified</li>}
+            </ul>
+          </div>
+        </div>
+
+        {/* Revision */}
+        {report.report.recommendedRevision.length > 0 && (
+          <div className="card">
+            <p className="text-xs font-medium text-text-secondary mb-2">Recommended revision</p>
+            <div className="flex flex-wrap gap-1.5">
+              {report.report.recommendedRevision.map((t, i) => (
+                <span key={i} className="badge-neutral">{t}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Summary */}
+        {report.report.summary && (
+          <div className="card">
+            <p className="text-xs font-medium text-text-secondary mb-2">Summary</p>
+            <p className="text-sm text-text-secondary leading-relaxed">{report.report.summary}</p>
+          </div>
+        )}
+
+        {/* Question by Question */}
+        <div>
+          <p className="text-xs font-medium text-text-secondary mb-3">Question breakdown</p>
+          <div className="space-y-2">
+            {report.evaluations.map((ev) => (
+              <div key={ev.questionNumber} className="border border-border rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setExpanded(expanded === ev.questionNumber ? null : ev.questionNumber)}
+                  className="w-full text-left px-4 py-3 flex items-center justify-between hover:bg-bg-hover transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-2xs text-text-muted">Q{ev.questionNumber}</span>
+                    <span className="badge-neutral text-2xs">{ev.topic}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="font-mono text-xs font-medium">{ev.score}/{ev.maxScore}</span>
+                    <span className="text-text-muted text-xs">{expanded === ev.questionNumber ? "−" : "+"}</span>
+                  </div>
+                </button>
+                {expanded === ev.questionNumber && (
+                  <div className="px-4 pb-4 border-t border-border pt-3 space-y-2 text-sm">
+                    <div><span className="text-2xs text-text-muted uppercase tracking-wider">Question: </span>{ev.question}</div>
+                    <div><span className="text-2xs text-text-muted uppercase tracking-wider">Answer: </span>{ev.studentAnswer}</div>
+                    <div><span className="text-2xs text-text-muted uppercase tracking-wider">Status: </span><span className="font-mono text-xs uppercase">{ev.correctness.replace(/_/g, " ")}</span></div>
+                    {ev.strengths.length > 0 && ev.strengths[0] !== "" && <div className="text-success text-xs">✓ {ev.strengths.join("; ")}</div>}
+                    {ev.weaknesses.length > 0 && ev.weaknesses[0] !== "" && <div className="text-warning text-xs">! {ev.weaknesses.join("; ")}</div>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center py-6">
+          <Link href="/viva" className="btn-secondary text-sm">Return to join page</Link>
+        </div>
       </div>
     </div>
   );
+}
 
-  const { session, viva, report, evaluations } = data;
-  const pct = report.percentage;
-
-  return (
-    <div className="min-h-screen bg-white p-8 max-w-4xl mx-auto">
-      <header className="mb-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-2">{viva.title}</p>
-        <h1 className="font-display text-4xl font-bold mb-1">{viva.experimentTitle}</h1>
-        <p className="font-body text-black/60">{session.studentName}</p>
-        <div className="rule-thick mt-6" />
-      </header>
-
-      <section className="mb-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Final Score</p>
-        <div className="flex items-baseline gap-2 mb-2">
-          <span className="font-display text-7xl font-bold">{report.overallScore}</span>
-          <span className="font-mono text-2xl text-black/40">/ {report.maxScore}</span>
-        </div>
-        <div className="rule-thin my-4" />
-        <div className="flex items-center gap-4">
-          <span className="font-mono text-sm tracking-widest uppercase">{report.status}</span>
-          <span className="font-mono text-sm text-black/40">{pct.toFixed(1)}%</span>
-          <span className="font-mono text-xs text-black/30">Pass: {viva.passingScore}</span>
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Category Performance</p>
-        {Object.entries(report.categoryPerformance).map(([cat, score]) => (
-          <div key={cat} className="mb-3">
-            <div className="flex justify-between mb-1">
-              <span className="font-body text-sm">{cat}</span>
-              <span className="font-mono text-sm">{score as number}%</span>
-            </div>
-            <div className="h-2 bg-black/5 w-full">
-              <div className="h-full bg-black transition-all" style={{ width: `${score}%` }} />
-            </div>
-          </div>
-        ))}
-      </section>
-
-      <section className="mb-12 grid grid-cols-2 gap-8">
-        <div>
-          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Strong Areas</p>
-          {report.strongAreas.map((a) => (
-            <div key={a} className="border border-black p-3 mb-2 font-body text-sm">{a}</div>
-          ))}
-        </div>
-        <div>
-          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Weak Areas</p>
-          {report.weakAreas.map((a) => (
-            <div key={a} className="border border-black p-3 mb-2 font-body text-sm">{a}</div>
-          ))}
-        </div>
-      </section>
-
-      {report.recommendedRevision.length > 0 && (
-        <section className="mb-12">
-          <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Recommended Revision</p>
-          <div className="flex flex-wrap gap-2">
-            {report.recommendedRevision.map((r) => (
-              <span key={r} className="border border-black px-3 py-1 font-mono text-xs tracking-wide">{r}</span>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <section className="mb-12">
-        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-3">Summary</p>
-        <div className="rule-thin mb-3" />
-        <p className="font-body text-sm leading-relaxed">{report.summary}</p>
-      </section>
-
-      <section>
-        <p className="font-mono text-xs tracking-widest uppercase text-black/50 mb-4">Question by Question</p>
-        <div className="rule-ultra mb-4" />
-        {evaluations.map((ev) => (
-          <div key={ev.id} className="border-b border-black/10">
-            <button
-              onClick={() => setExpandedQ(expandedQ === ev.id ? null : ev.id)}
-              className="w-full flex items-center justify-between py-4 text-left"
-            >
-              <div className="flex-1">
-                <p className="font-body text-sm">{ev.question}</p>
-                <p className="font-mono text-xs text-black/40 mt-1">{ev.category} — {ev.score}/{ev.maxScore}</p>
-              </div>
-              <span className="font-mono text-lg ml-4">{expandedQ === ev.id ? "−" : "+"}</span>
-            </button>
-            {expandedQ === ev.id && (
-              <div className="pb-4 pl-4 border-l-2 border-black/10">
-                <p className="font-body text-sm mb-2"><span className="font-mono text-xs tracking-widest uppercase text-black/40">Answer: </span>{ev.answer}</p>
-                <p className="font-body text-sm text-black/60"><span className="font-mono text-xs tracking-widest uppercase text-black/40">Feedback: </span>{ev.feedback}</p>
-              </div>
-            )}
-          </div>
-        ))}
-      </section>
-    </div>
-  );
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
 }

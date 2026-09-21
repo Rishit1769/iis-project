@@ -26,14 +26,7 @@ interface VivaDetail {
       topic: string;
       difficulty: string;
       type: string;
-      answer: {
-        answerText: string;
-        score: number;
-        maxScore: number;
-        correctness: string;
-        strengths: string;
-        weaknesses: string;
-      } | null;
+      answer: { answerText: string; score: number; maxScore: number; correctness: string; strengths: string; weaknesses: string } | null;
     }>;
   }>;
 }
@@ -47,238 +40,105 @@ export default function VivaDetailPage() {
   useEffect(() => {
     fetch(`/api/vivas/${params.id}`)
       .then((r) => r.json())
-      .then((data) => {
-        if (data.id) setViva(data);
-      })
+      .then((data) => { if (data.id) setViva(data); })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, [params.id]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
-          Loading...
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="text-text-muted text-sm py-20 text-center">Loading...</div>;
+  if (!viva) return <div className="text-text-muted text-sm py-20 text-center">Viva not found.</div>;
 
-  if (!viva) {
-    return (
-      <div className="py-24 text-center">
-        <p className="font-body text-[#525252]">Viva not found.</p>
-      </div>
-    );
-  }
-
-  const selectedSessionData = viva.sessions.find(
-    (s) => s.id === selectedSession
-  );
+  const selectedSessionData = viva.sessions.find((s) => s.id === selectedSession);
 
   return (
-    <div className="space-y-12">
+    <div className="max-w-5xl space-y-6">
       <div>
-        <Link
-          href="/dashboard/vivas"
-          className="font-mono text-[10px] uppercase tracking-widest text-[#525252] hover:text-black underline underline-offset-4 hover:no-underline transition-colors duration-100"
-        >
-          ← Back to My Vivas
-        </Link>
-        <h1 className="font-display text-4xl md:text-5xl font-bold tracking-tight mt-4">
-          {viva.title}
-        </h1>
-        <p className="font-body text-lg text-[#525252] mt-2">
-          {viva.experiment.title}
-        </p>
+        <Link href="/dashboard/vivas" className="text-2xs text-text-muted hover:text-text-secondary transition-colors">← Back to vivas</Link>
+        <h1 className="text-2xl font-semibold mt-2">{viva.title}</h1>
+        <p className="text-text-secondary text-sm mt-1">{viva.experiment.title}</p>
       </div>
 
-      <div className="rule-ultra" />
-
       {/* Session Code */}
-      <div className="border border-black p-6 inline-block">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mb-2">
-          Session Code
-        </p>
-        <p className="font-mono text-3xl font-bold tracking-widest">
-          {viva.sessionCode}
-        </p>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-[#525252] mt-2">
-          Share with students
-        </p>
+      <div className="inline-flex items-center gap-3 bg-bg-elevated border border-border rounded-lg px-4 py-3">
+        <span className="text-2xs text-text-muted uppercase tracking-wider">Session code</span>
+        <span className="font-mono text-lg font-semibold">{viva.sessionCode}</span>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-0">
-        <div className="p-6 border border-black text-center">
-          <p className="font-display text-3xl font-bold">
-            {viva.totalQuestions}
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
-            Questions
-          </p>
-        </div>
-        <div className="p-6 border border-black border-l-0 text-center">
-          <p className="font-display text-3xl font-bold">
-            {viva.sessions.filter((s) => s.status === "COMPLETED").length}
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
-            Completed
-          </p>
-        </div>
-        <div className="p-6 border border-black border-l-0 text-center">
-          <p className="font-display text-3xl font-bold capitalize">
-            {viva.difficulty}
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-widest mt-1">
-            Difficulty
-          </p>
-        </div>
+      <div className="grid grid-cols-3 gap-3">
+        {[
+          { label: "Questions", value: viva.totalQuestions },
+          { label: "Completed", value: viva.sessions.filter((s) => s.status === "COMPLETED").length },
+          { label: "Difficulty", value: viva.difficulty },
+        ].map((stat) => (
+          <div key={stat.label} className="card text-center">
+            <p className="text-2xs text-text-muted uppercase tracking-wider">{stat.label}</p>
+            <p className="text-xl font-semibold mt-1 capitalize">{stat.value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Sessions + Detail */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-1">
-          <p className="font-mono text-xs uppercase tracking-widest mb-4">
-            Student Sessions
-          </p>
-          <div className="rule-thin mb-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-1 space-y-2">
+          <p className="text-xs font-medium text-text-secondary">Sessions</p>
           {viva.sessions.length === 0 ? (
-            <div className="py-12 text-center border border-[#E5E5E5]">
-              <p className="font-mono text-xs text-[#525252]">No sessions yet</p>
-            </div>
+            <div className="card text-center py-8"><p className="text-text-muted text-xs">No sessions yet</p></div>
           ) : (
-            <div className="space-y-0">
-              {viva.sessions.map((session) => {
-                const pct =
-                  session.maxScore > 0
-                    ? Math.round(
-                        (session.totalScore / session.maxScore) * 100
-                      )
-                    : 0;
-                return (
-                  <button
-                    key={session.id}
-                    onClick={() => setSelectedSession(session.id)}
-                    className={`w-full text-left p-4 border border-black transition-colors duration-100 ${
-                      selectedSession === session.id
-                        ? "bg-black text-white"
-                        : "hover:bg-black/[0.03]"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-body font-medium text-sm">
-                        {session.studentName}
-                      </span>
-                      <span
-                        className={
-                          session.status === "COMPLETED"
-                            ? selectedSession === session.id
-                              ? "badge-success bg-white text-black border-white"
-                              : "badge-success"
-                            : "badge-neutral"
-                        }
-                      >
-                        {session.status}
-                      </span>
-                    </div>
-                    {session.status === "COMPLETED" && (
-                      <p className="font-mono text-xs mt-1 opacity-60">
-                        Score: {pct}% ({session.totalScore}/{session.maxScore})
-                      </p>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+            viva.sessions.map((session) => {
+              const pct = session.maxScore > 0 ? Math.round((session.totalScore / session.maxScore) * 100) : 0;
+              return (
+                <button
+                  key={session.id}
+                  onClick={() => setSelectedSession(session.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
+                    selectedSession === session.id ? "border-accent bg-accent-muted" : "border-border hover:border-border/80"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{session.studentName}</span>
+                    <span className={session.status === "COMPLETED" ? "badge-success" : "badge-warning"}>{session.status}</span>
+                  </div>
+                  {session.status === "COMPLETED" && (
+                    <p className="text-2xs text-text-muted font-mono mt-1">{pct}% — {session.totalScore}/{session.maxScore}</p>
+                  )}
+                </button>
+              );
+            })
           )}
         </div>
 
         <div className="lg:col-span-2">
           {selectedSessionData ? (
-            <div className="space-y-6">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="font-mono text-xs uppercase tracking-widest">
-                  {selectedSessionData.studentName}&apos;s Assessment
-                </p>
+                <p className="text-xs font-medium text-text-secondary">{selectedSessionData.studentName}&apos;s answers</p>
                 {selectedSessionData.status === "COMPLETED" && (
-                  <Link
-                    href={`/viva/report/${selectedSessionData.id}`}
-                    target="_blank"
-                    className="btn-primary text-[10px]"
-                  >
-                    View Full Report →
-                  </Link>
+                  <Link href={`/viva/report/${selectedSessionData.id}`} target="_blank" className="btn-primary text-2xs py-1 px-3">Full report</Link>
                 )}
               </div>
-              <div className="rule-thin" />
-
-              <div className="space-y-4">
-                {selectedSessionData.questions.map((q) => (
-                  <div key={q.id} className="border border-black p-6">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-[10px] uppercase tracking-widest">
-                        Question {q.questionNumber}
-                      </span>
-                      {q.answer && (
-                        <span className="font-mono text-sm font-bold">
-                          {q.answer.score}/{q.answer.maxScore}
-                        </span>
-                      )}
-                    </div>
-                    <p className="font-body font-medium mb-3">{q.text}</p>
-                    {q.answer ? (
-                      <div className="space-y-2 text-sm">
-                        <div className="border-t border-[#E5E5E5] pt-3">
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
-                            Answer:{" "}
-                          </span>
-                          <span className="font-body">{q.answer.answerText}</span>
-                        </div>
-                        <div>
-                          <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
-                            Correctness:{" "}
-                          </span>
-                          <span className="font-mono text-xs uppercase">
-                            {q.answer.correctness.replace(/_/g, " ")}
-                          </span>
-                        </div>
-                        {q.answer.strengths !== "[]" && (
-                          <div>
-                            <span className="font-mono text-[10px] uppercase tracking-widest">
-                              Strengths:{" "}
-                            </span>
-                            <span className="font-body text-sm">
-                              {JSON.parse(q.answer.strengths).join(", ")}
-                            </span>
-                          </div>
-                        )}
-                        {q.answer.weaknesses !== "[]" && (
-                          <div>
-                            <span className="font-mono text-[10px] uppercase tracking-widest text-[#525252]">
-                              Weaknesses:{" "}
-                            </span>
-                            <span className="font-body text-sm">
-                              {JSON.parse(q.answer.weaknesses).join(", ")}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <p className="font-body text-sm italic text-[#525252]">
-                        Awaiting answer
-                      </p>
-                    )}
+              {selectedSessionData.questions.map((q) => (
+                <div key={q.id} className="card">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-2xs text-text-muted font-mono">Q{q.questionNumber}</span>
+                    {q.answer && <span className="text-xs font-mono font-medium">{q.answer.score}/{q.answer.maxScore}</span>}
                   </div>
-                ))}
-              </div>
+                  <p className="text-sm font-medium mb-2">{q.text}</p>
+                  {q.answer ? (
+                    <div className="text-xs space-y-1.5 text-text-secondary">
+                      <p className="text-text">{q.answer.answerText}</p>
+                      <p className="font-mono text-2xs">{q.answer.correctness.replace(/_/g, " ")}</p>
+                      {q.answer.strengths !== "[]" && <p><span className="text-success">✓</span> {JSON.parse(q.answer.strengths).join(", ")}</p>}
+                      {q.answer.weaknesses !== "[]" && <p><span className="text-warning">!</span> {JSON.parse(q.answer.weaknesses).join(", ")}</p>}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-text-muted italic">Awaiting answer</p>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="py-24 text-center border border-[#E5E5E5]">
-              <p className="font-body text-[#525252]">
-                Select a student session to view details
-              </p>
-            </div>
+            <div className="card text-center py-16"><p className="text-text-muted text-sm">Select a session to view details</p></div>
           )}
         </div>
       </div>

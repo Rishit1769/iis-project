@@ -17,38 +17,29 @@ export default function DashboardLayout({
     fetch("/api/auth/session")
       .then((r) => r.json())
       .then((data) => {
-        if (data?.user) {
-          setAuthorized(true);
-        } else {
-          router.replace("/login");
-        }
+        if (data?.user) setAuthorized(true);
+        else router.replace("/login");
       })
-      .catch(() => {
-        router.replace("/login");
-      })
-      .finally(() => {
-        setChecking(false);
-      });
+      .catch(() => router.replace("/login"))
+      .finally(() => setChecking(false));
   }, [router]);
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="font-mono text-xs uppercase tracking-widest animate-pulse-slow">
+      <div className="flex min-h-screen items-center justify-center bg-bg">
+        <div className="text-text-muted text-sm animate-pulse-subtle">
           Loading...
         </div>
       </div>
     );
   }
 
-  if (!authorized) {
-    return null;
-  }
+  if (!authorized) return null;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="min-h-screen bg-bg">
       <Sidebar />
-      <main className="flex-1 p-8 md:p-12 overflow-auto">{children}</main>
+      <main className="ml-[240px] p-6">{children}</main>
     </div>
   );
 }

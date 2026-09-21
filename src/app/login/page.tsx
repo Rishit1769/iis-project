@@ -14,14 +14,8 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     setLoading(true);
-
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
+      const result = await signIn("credentials", { email, password, redirect: false });
       if (result?.error) {
         setError("Invalid email or password.");
         setLoading(false);
@@ -35,102 +29,65 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel - decorative */}
-      <div className="hidden lg:flex lg:w-1/2 bg-black text-white items-center justify-center relative overflow-hidden">
-        <div className="texture-vertical-lines absolute inset-0" />
-        <div className="relative z-10 p-16">
-          <h1 className="font-display text-7xl font-bold tracking-tight leading-none mb-8">
-            AI
-            <br />
-            <span className="italic">Viva</span>
-            <br />
-            Examiner
-          </h1>
-          <div className="rule-thick w-16 bg-white my-8" />
-          <p className="font-body text-lg text-white/60 max-w-sm">
-            Adaptive laboratory viva examination powered by artificial
-            intelligence.
-          </p>
+    <div className="min-h-screen bg-bg flex items-center justify-center px-6">
+      <div className="w-full max-w-sm">
+        <div className="mb-8">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm font-bold">V</span>
+            </div>
+            <span className="font-semibold">VivaAI</span>
+          </div>
+          <h1 className="text-xl font-semibold">Welcome back</h1>
+          <p className="text-text-secondary text-sm mt-1">Sign in to your account</p>
         </div>
-      </div>
 
-      {/* Right panel - form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-6 md:px-12">
-        <div className="w-full max-w-md">
-          <div className="lg:hidden mb-12">
-            <h1 className="font-display text-4xl font-bold tracking-tight">
-              AI Viva Examiner
-            </h1>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="label">Email</label>
+            <input
+              type="email"
+              className="input"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <label className="label">Password</label>
+            <input
+              type="password"
+              className="input"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </div>
 
-          <p className="font-mono text-xs uppercase tracking-widest mb-4">
-            Sign In
-          </p>
-          <div className="rule-thick w-12 mb-8" />
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <div>
-              <label className="label">Email</label>
-              <input
-                type="email"
-                className="input"
-                placeholder="teacher@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
+          {error && (
+            <div className="bg-error-muted border border-error/20 rounded p-3">
+              <p className="text-error text-sm">{error}</p>
             </div>
+          )}
 
-            <div>
-              <label className="label">Password</label>
-              <input
-                type="password"
-                className="input"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+          <button type="submit" className="btn-primary w-full" disabled={loading}>
+            {loading ? "Signing in..." : "Sign in"}
+          </button>
+        </form>
 
-            {error && (
-              <div className="border-2 border-black p-4">
-                <p className="font-mono text-xs uppercase tracking-wider">
-                  {error}
-                </p>
-              </div>
-            )}
+        <p className="text-center text-sm text-text-secondary mt-6">
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-accent hover:text-accent-hover transition-colors">
+            Sign up
+          </Link>
+        </p>
 
-            <button
-              type="submit"
-              className="btn-primary w-full"
-              disabled={loading}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          <div className="mt-8">
-            <div className="rule-thin mb-8" />
-            <p className="font-body text-sm text-[#525252]">
-              <Link
-                href="/register"
-                className="text-black font-medium underline underline-offset-4 hover:no-underline"
-              >
-                Create an account
-              </Link>
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <Link
-              href="/viva"
-              className="font-mono text-xs uppercase tracking-widest text-[#525252] hover:text-black hover:underline underline-offset-4 transition-colors duration-100"
-            >
-              Student? Join a viva session →
-            </Link>
-          </div>
+        <div className="mt-8 pt-6 border-t border-border text-center">
+          <Link href="/viva" className="text-xs text-text-muted hover:text-text-secondary transition-colors">
+            Student? Join a viva session →
+          </Link>
         </div>
       </div>
     </div>
