@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: "home" },
@@ -23,6 +24,10 @@ const ICONS: Record<string, string> = {
 export default function Sidebar() {
   const pathname = usePathname();
   const [user, setUser] = useState<{ name: string; role: string } | null>(null);
+
+  const handleLogout = () => {
+    signOut({ callbackUrl: "/login" });
+  };
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -105,6 +110,13 @@ export default function Sidebar() {
             <p className="text-2xs text-text-muted">{user?.role || "TEACHER"}</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full mt-2 px-3 py-2 text-left text-sm text-text-secondary hover:text-text hover:bg-bg-hover rounded transition-colors"
+        >
+          Log out
+        </button>
       </div>
     </aside>
   );

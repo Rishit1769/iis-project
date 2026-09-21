@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -77,15 +78,20 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="label">Password</label>
-            <input
-              type="password"
-              className="input"
-              placeholder="Min 6 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="input pr-16"
+                placeholder="Min 6 characters"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                minLength={6}
+                required
+              />
+              <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-text-secondary hover:text-text">
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           {error && (

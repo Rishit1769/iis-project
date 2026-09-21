@@ -7,6 +7,7 @@ import Link from "next/link";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -56,14 +57,19 @@ export default function LoginPage() {
           </div>
           <div>
             <label className="label">Password</label>
-            <input
-              type="password"
-              className="input"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="input pr-16"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button type="button" onClick={() => setShowPassword((visible) => !visible)} className="absolute right-0 top-1/2 -translate-y-1/2 text-xs text-text-secondary hover:text-text">
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
           </div>
 
           {error && (
