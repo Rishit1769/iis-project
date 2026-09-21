@@ -29,6 +29,13 @@ export default function Sidebar() {
     signOut({ callbackUrl: "/login" });
   };
 
+  const navItems = user?.role === "ADMIN"
+    ? [
+        { href: "/dashboard", label: "Dashboard", icon: "home" },
+        { href: "/dashboard/admin", label: "Teacher Approvals", icon: "list" },
+      ]
+    : NAV_ITEMS;
+
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
@@ -52,7 +59,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-3 space-y-0.5">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));
