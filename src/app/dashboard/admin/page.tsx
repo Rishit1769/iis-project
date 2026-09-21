@@ -49,8 +49,10 @@ export default function AdminPage() {
               <td className="py-3 px-4">{teacher.email}</td>
               <td className="py-3 px-4"><span className={teacher.approvalStatus === "APPROVED" ? "badge-success" : teacher.approvalStatus === "REJECTED" ? "badge-neutral" : "badge-warning"}>{teacher.approvalStatus}</span></td>
               <td className="py-3 px-4 text-right space-x-2">
-                <button className="btn-primary text-sm" onClick={() => updateStatus(teacher.id, "APPROVED")}>Approve</button>
-                <button className="btn-secondary text-sm" onClick={() => updateStatus(teacher.id, "REJECTED")}>Reject</button>
+                {teacher.approvalStatus === "PENDING" ? <>
+                  <button className="btn-primary text-sm" onClick={() => updateStatus(teacher.id, "APPROVED")}>Approve</button>
+                  <button className="btn-secondary text-sm" onClick={() => updateStatus(teacher.id, "REJECTED")}>Reject</button>
+                </> : <span className="text-[var(--muted-foreground)]">Reviewed</span>}
               </td>
             </tr>)}
           </tbody>

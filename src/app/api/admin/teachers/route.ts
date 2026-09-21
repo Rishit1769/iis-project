@@ -16,7 +16,7 @@ export async function GET() {
   }
 
   const teachers = await prisma.user.findMany({
-    where: { role: "TEACHER" },
+    where: { role: "TEACHER", approvalStatus: "PENDING" },
     select: { id: true, name: true, email: true, approvalStatus: true, createdAt: true },
     orderBy: { createdAt: "desc" },
   });
@@ -37,6 +37,13 @@ export async function PATCH(request: Request) {
   const teacher = await prisma.user.findFirst({ where: { id, role: "TEACHER" } });
   if (!teacher) {
     return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+  }
+
+  if (teacher.approvalStatus !== "PENDING") {
+    return NextResponse.json(
+      { error: "This teacher account has already been reviewed" },
+      { status: 409 }
+    );
   }
 
   const updated = await prisma.user.update({
