@@ -1,100 +1,123 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-[var(--background)]">
+      <header className="border-b border-[var(--border)] bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+          <h1 className="text-xl font-bold text-[var(--primary)]">
+            AI Viva Examiner
+          </h1>
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="btn-ghost text-sm">
+              Sign In
+            </Link>
+            <Link href="/register" className="btn-primary text-sm">
+              Get Started
+            </Link>
+          </div>
+        </div>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <main className="max-w-6xl mx-auto px-6 py-20">
+        <div className="text-center max-w-3xl mx-auto">
+          <h2 className="text-4xl font-bold text-[var(--foreground)] leading-tight">
+            AI-Powered Laboratory
+            <br />
+            Viva Examination
+          </h2>
+          <p className="text-lg text-[var(--muted-foreground)] mt-6 leading-relaxed">
+            An adaptive examination system that uses AI to conduct
+            experiment-specific viva examinations, evaluate student responses,
+            and generate comprehensive performance reports.
+          </p>
+          <div className="flex items-center justify-center gap-4 mt-10">
+            <Link href="/register" className="btn-primary px-8 py-3 text-base">
+              Teacher Dashboard
+            </Link>
+            <Link href="/viva" className="btn-secondary px-8 py-3 text-base">
+              Join Viva Session
+            </Link>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
+          {[
+            {
+              title: "Upload Experiment",
+              description:
+                "Upload your experiment PDF. The system extracts text and prepares it for AI-powered questioning.",
+              icon: "upload",
+            },
+            {
+              title: "Adaptive Examination",
+              description:
+                "The AI examiner asks questions based on the experiment, evaluates answers, and adapts difficulty in real-time.",
+              icon: "adaptive",
+            },
+            {
+              title: "Comprehensive Reports",
+              description:
+                "Get detailed performance reports with category breakdowns, strengths, weaknesses, and revision recommendations.",
+              icon: "report",
+            },
+          ].map((feature) => (
+            <div key={feature.title} className="card text-center">
+              <div className="w-12 h-12 rounded-xl bg-[var(--accent)] flex items-center justify-center mx-auto mb-4">
+                {feature.icon === "upload" && (
+                  <svg className="w-6 h-6 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                )}
+                {feature.icon === "adaptive" && (
+                  <svg className="w-6 h-6 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                  </svg>
+                )}
+                {feature.icon === "report" && (
+                  <svg className="w-6 h-6 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="text-lg font-semibold text-[var(--foreground)]">
+                {feature.title}
+              </h3>
+              <p className="text-sm text-[var(--muted-foreground)] mt-2 leading-relaxed">
+                {feature.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="card mt-16 text-center">
+          <h3 className="text-lg font-semibold text-[var(--foreground)] mb-2">
+            How It Works
+          </h3>
+          <div className="flex items-center justify-center gap-4 text-sm text-[var(--muted-foreground)] flex-wrap mt-4">
+            <span>Upload PDF</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>Extract Text</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>Configure Viva</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>AI Examiner</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>Adaptive Questions</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>Evaluate Answers</span>
+            <span className="text-[var(--primary)]">→</span>
+            <span>Final Report</span>
+          </div>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-[var(--border)] py-8 mt-20">
+        <div className="max-w-6xl mx-auto px-6 text-center text-sm text-[var(--muted-foreground)]">
+          AI Viva Examiner &middot; Adaptive Laboratory Examination System
+        </div>
       </footer>
     </div>
   );

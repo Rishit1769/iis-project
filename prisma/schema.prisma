@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(STUDENT)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  vivas         Viva[]
+
+  @@map("users")
+}
+
+model Experiment {
+  id              String    @id @default(uuid())
+  title           String
+  originalFileName String  @map("original_file_name")
+  extractedText   String    @map("extracted_text") @db.LongText
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  vivas           Viva[]
+
+  @@map("experiments")
+}
+
+model Viva {
+  id              String    @id @default(uuid())
+  teacherId       String    @map("teacher_id")
+  experimentId    String    @map("experiment_id")
+  title           String
+  totalQuestions  Int       @default(10) @map("total_questions")
+  difficulty      String    @default("adaptive")
+  passingScore    Int       @default(50) @map("passing_score")
+  adaptiveMode    Boolean   @default(true) @map("adaptive_mode")
+  questionTypes   String    @default("conceptual,procedure,calculation,application") @map("question_types")
+  sessionCode     String    @unique @map("session_code")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  teacher         User      @relation(fields: [teacherId], references: [id])
+  experiment      Experiment @relation(fields: [experimentId], references: [id])
+  sessions        VivaSession[]
+
+  @@map("vivas")
+}
+
+model VivaSession {
+  id              String    @id @default(uuid())
+  vivaId          String    @map("viva_id")
+  studentName     String    @map("student_name")
+  status          SessionStatus @default(ACTIVE)
+  currentQuestion Int       @default(1) @map("current_question")
+  totalQuestions  Int       @map("total_questions")
+  totalScore      Int       @default(0) @map("total_score")
+  maxScore        Int       @default(0) @map("max_score")
+  startedAt       DateTime  @default(now()) @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  viva            Viva      @relation(fields: [vivaId], references: [id])
+  questions       Question[]
+  evaluations     Evaluation[]
+
+  @@map("viva_sessions")
+}
+
+model Question {
+  id              String    @id @default(uuid())
+  sessionId       String    @map("session_id")
+  questionNumber  Int       @map("question_number")
+  text            String    @db.Text
+  topic           String
+  difficulty      String
+  type            String
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  session         VivaSession @relation(fields: [sessionId], references: [id])
+  answer          Answer?
+
+  @@map("questions")
+}
+
+model Answer {
+  id                    String    @id @default(uuid())
+  questionId            String    @unique @map("question_id")
+  answerText            String    @map("answer_text") @db.Text
+  score                 Int
+  maxScore              Int       @map("max_score")
+  correctness           String
+  conceptualUnderstanding Float  @map("conceptual_understanding")
+  completeness          Float
+  feedback              String    @db.Text
+  strengths             String    @db.Text
+  weaknesses            String    @db.Text
+  missingConcepts       String    @map("missing_concepts") @db.Text
+  submittedAt           DateTime  @default(now()) @map("submitted_at")
+
+  question              Question  @relation(fields: [questionId], references: [id])
+
+  @@map("answers")
+}
+
+model Evaluation {
+  id              String    @id @default(uuid())
+  sessionId       String    @map("session_id")
+  questionNumber  Int       @map("question_number")
+  score           Int
+  maxScore        Int       @map("max_score")
+  topicsCovered   String    @map("topics_covered") @db.Text
+  weakTopics      String    @map("weak_topics") @db.Text
+  strongTopics    String    @map("strong_topics") @db.Text
+  currentDifficulty String @map("current_difficulty")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  session         VivaSession @relation(fields: [sessionId], references: [id])
+
+  @@map("evaluations")
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}
