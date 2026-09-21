@@ -27,6 +27,17 @@ export function middleware(request: NextRequest) {
       loginUrl.searchParams.set("callbackUrl", pathname);
       return NextResponse.redirect(loginUrl);
     }
+
+    // Validate JWT format (basic check - 3 parts separated by dots)
+    const parts = sessionToken.split(".");
+    if (parts.length !== 3) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      const response = NextResponse.redirect(loginUrl);
+      response.cookies.delete("authjs.session-token");
+      response.cookies.delete("__Secure-authjs.session-token");
+      return response;
+    }
   }
 
   return NextResponse.next();
