@@ -1,21 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setNotice("");
     setLoading(true);
 
     try {
@@ -33,17 +32,8 @@ export default function RegisterPage() {
         return;
       }
 
-      const signInResult = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (signInResult?.error) {
-        router.push("/login");
-      } else {
-        window.location.href = "/dashboard";
-      }
+      setNotice(data.message || "Account created. An administrator must approve it before you can sign in.");
+      setLoading(false);
     } catch {
       setError("Registration failed. Please try again.");
       setLoading(false);
@@ -81,7 +71,7 @@ export default function RegisterPage() {
               <input
                 type="email"
                 className="input"
-                placeholder="teacher@example.com"
+                placeholder="teacher@tcetmumbai.in"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -104,6 +94,11 @@ export default function RegisterPage() {
             {error && (
               <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
                 {error}
+              </div>
+            )}
+            {notice && (
+              <div className="text-sm text-green-700 bg-green-50 border border-green-200 rounded-lg p-3">
+                {notice}
               </div>
             )}
 

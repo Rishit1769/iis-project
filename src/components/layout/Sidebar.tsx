@@ -55,6 +55,10 @@ export default function Sidebar() {
       .catch(() => {});
   }, []);
 
+  const navItems = user?.role === "ADMIN"
+    ? [{ href: "/dashboard", label: "Dashboard", icon: "grid" as const }, { href: "/dashboard/admin", label: "Teacher Approvals", icon: "list" as const }]
+    : NAV_ITEMS;
+
   const initials = user?.name
     ? user.name
         .split(" ")
@@ -75,7 +79,7 @@ export default function Sidebar() {
         </p>
       </div>
       <nav className="flex-1 p-4 space-y-1">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
             (item.href !== "/dashboard" && pathname.startsWith(item.href));

@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { isTcetTeacherEmail } from "@/lib/constants";
 
 export const {
   handlers,
@@ -24,7 +25,7 @@ export const {
         if (!credentials?.email || !credentials?.password) return null;
 
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
+          where: { email: (credentials.email as string).trim().toLowerCase() },
         });
 
         if (!user) return null;
@@ -36,11 +37,24 @@ export const {
 
         if (!isValid) return null;
 
+        if (user.role === "TEACHER" && !isTcetTeacherEmail(user.email)) {
+          throw new Error("TEACHER_EMAIL_DOMAIN_REQUIRED");
+        }
+
+        if (user.role === "TEACHER" && user.approvalStatus !== "APPROVED") {
+          throw new Error(
+            user.approvalStatus === "REJECTED"
+              ? "ACCOUNT_REJECTED"
+              : "ACCOUNT_PENDING"
+          );
+        }
+
         return {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
+          approvalStatus: user.approvalStatus,
         };
       },
     }),
@@ -50,6 +64,7 @@ export const {
       if (user) {
         token.role = (user as { role: string }).role;
         token.id = user.id;
+        token.approvalStatus = (user as { approvalStatus: string }).approvalStatus;
       }
       return token;
     },
@@ -57,6 +72,8 @@ export const {
       if (session.user) {
         (session.user as { role?: string }).role = token.role as string;
         (session.user as { id?: string }).id = token.id as string;
+        (session.user as { approvalStatus?: string }).approvalStatus =
+          token.approvalStatus as string;
       }
       return session;
     },

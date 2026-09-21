@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { isTcetTeacherEmail } from "@/lib/constants";
 
 export async function POST(request: Request) {
   try {
@@ -21,9 +22,18 @@ export async function POST(request: Request) {
       );
     }
 
-    if (typeof email !== "string" || !email.includes("@")) {
+    const normalizedEmail = typeof email === "string" ? email.trim().toLowerCase() : "";
+
+    if (!normalizedEmail.includes("@")) {
       return NextResponse.json(
         { error: "Invalid email address" },
+        { status: 400 }
+      );
+    }
+
+    if (!isTcetTeacherEmail(normalizedEmail)) {
+      return NextResponse.json(
+        { error: "Teacher accounts must use an @tcetmumbai.in email address" },
         { status: 400 }
       );
     }
@@ -35,7 +45,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existing) {
       return NextResponse.json(
         { error: "Email already registered" },
@@ -48,9 +58,10 @@ export async function POST(request: Request) {
     const user = await prisma.user.create({
       data: {
         name: name.trim(),
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         passwordHash,
         role: "TEACHER",
+        approvalStatus: "PENDING",
       },
     });
 
@@ -59,6 +70,8 @@ export async function POST(request: Request) {
       name: user.name,
       email: user.email,
       role: user.role,
+      approvalStatus: user.approvalStatus,
+      message: "Your account was created and is waiting for admin approval.",
     });
   } catch (error) {
     console.error("Registration error:", error);

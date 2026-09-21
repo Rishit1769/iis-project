@@ -16,6 +16,17 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Teacher approvals
+
+Apply the Prisma schema/migration and seed the administrator with:
+
+```bash
+npx prisma migrate deploy
+npm run prisma:seed
+```
+
+The seeded administrator is `admin@tcetmumbai.in` with password `159753`. Teacher registrations must use `@tcetmumbai.in` and remain pending until an administrator approves them from the Teacher Approvals page.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
