@@ -25,6 +25,14 @@ npx prisma migrate deploy
 npm run prisma:seed
 ```
 
+If the database already contains the application tables and Prisma reports `P3005`, apply the one migration directly and then register it as applied. This is a one-time baseline step for the existing database:
+
+```bash
+npx prisma db execute --file prisma/migrations/20260921000000_teacher_approval/migration.sql
+npx prisma migrate resolve --applied 20260921000000_teacher_approval
+npm run prisma:seed
+```
+
 The seeded administrator is `admin@tcetmumbai.in` with password `159753`. Teacher registrations must use `@tcetmumbai.in` and remain pending until an administrator approves them from the Teacher Approvals page.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
